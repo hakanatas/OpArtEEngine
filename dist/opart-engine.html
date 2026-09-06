@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpArt Engine — advanced optical-art generator</title>
+  <meta name="description" content="Browser-based Op Art generator: 22 patterns, two blendable layers, distortion warps, kaleidoscope symmetry, palettes, animation, high-resolution PNG export.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='11' fill='%23fff'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23fff'/%3E%3C/svg%3E">
+  <style>
+:root {
+  --bg: #0e0f13; --panel: #171922; --panel2: #1f2230; --text: #e8e9ef; --muted: #9aa0b4;
+  --accent: #7c5cff; --accent2: #38d9c0; --border: #2a2e40; --track: #2f3448; --thumb: #cfd3e6;
+  --radius: 10px; --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #f3f4f8; --panel: #ffffff; --panel2: #eef0f6; --text: #1a1c26; --muted: #5a6078;
+  --accent: #5b3df5; --accent2: #0fa891; --border: #d9dce8; --track: #d7dbe8; --thumb: #3a3f55;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { font: 14px/1.45 var(--font); background: var(--bg); color: var(--text); display: flex; flex-direction: column; overflow: hidden; }
+
+header { display: flex; align-items: center; gap: 14px; padding: 8px 14px; border-bottom: 1px solid var(--border); background: var(--panel); flex: 0 0 auto; }
+header h1 { font-size: 17px; margin: 0; letter-spacing: .3px; }
+header h1 span { color: var(--accent2); }
+header #subtitle { color: var(--muted); font-size: 12px; }
+header .spacer { flex: 1; }
+header button { padding: 5px 10px; }
+
+main { flex: 1 1 auto; display: grid; grid-template-columns: 1fr 340px; min-height: 0; }
+#stage { position: relative; display: flex; align-items: center; justify-content: center; padding: 4px; min-width: 0; min-height: 0;
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--panel2) 60%, transparent), transparent 70%); }
+#stage:fullscreen { background: #000; }
+#view { display: block; background: #000; border-radius: 4px; box-shadow: 0 12px 40px rgba(0,0,0,.45); touch-action: none; cursor: grab; max-width: 100%; max-height: 100%; }
+#view:active { cursor: grabbing; }
+#overlay[hidden] { display: none; }
+#overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.55); color: #fff; font-size: 16px; backdrop-filter: blur(3px); }
+#hint { color: var(--muted); font-size: 11px; }
+
+#panel { overflow-y: auto; border-left: 1px solid var(--border); background: var(--panel); padding: 6px 8px 40px; scrollbar-width: thin; }
+.sec { border: 1px solid var(--border); border-radius: var(--radius); margin: 6px 0; background: var(--panel2); }
+.sec > summary { cursor: pointer; padding: 7px 10px; font-weight: 600; font-size: 13px; list-style: none; user-select: none; display: flex; align-items: center; }
+.sec > summary::before { content: "▸"; display: inline-block; width: 14px; color: var(--muted); transition: transform .15s; }
+.sec[open] > summary::before { transform: rotate(90deg); }
+.sec-body { padding: 2px 10px 10px; }
+.layer-body.disabled { opacity: .45; pointer-events: none; }
+
+.row { display: grid; grid-template-columns: 108px 1fr 58px; align-items: center; gap: 8px; margin: 5px 0; }
+.row label { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row select { grid-column: 2 / span 2; }
+.row.check { display: flex; gap: 8px; cursor: pointer; }
+.row.check span { color: var(--muted); font-size: 12px; }
+.row[hidden] { display: none; }
+.row-label { color: var(--muted); font-size: 12px; margin: 8px 0 4px; }
+
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 18px; background: transparent; margin: 0; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--track); border-radius: 2px; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border-radius: 50%; background: var(--thumb); border: 2px solid var(--accent); }
+input[type="range"]::-moz-range-track { height: 4px; background: var(--track); border-radius: 2px; }
+input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--thumb); border: 2px solid var(--accent); }
+input[type="number"], select, input.seed { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 3px 5px; font: inherit; font-size: 12px; min-width: 0; }
+input[type="number"] { width: 100%; }
+input.seed { width: auto; flex: 1; }
+input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+input[type="color"] { width: 34px; height: 30px; border: none; padding: 0; background: none; cursor: pointer; border-radius: 6px; }
+
+button { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px; font: inherit; font-size: 12px; cursor: pointer; transition: background .12s, border-color .12s; }
+button:hover { border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: default; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+button.mini { padding: 2px 7px; font-size: 11px; }
+.btns { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.btns select { flex: 0 0 auto; }
+
+.swatches { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.swatch { position: relative; }
+.swatch .mini { position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; padding: 0; line-height: 12px; border-radius: 50%; font-size: 11px; }
+.pal-presets { display: flex; flex-wrap: wrap; gap: 5px; }
+.pal-btn { display: flex; padding: 0; overflow: hidden; height: 20px; width: 60px; border-radius: 5px; }
+.pal-btn span { flex: 1; }
+
+.presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.preset { padding: 3px; min-width: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: var(--muted); }
+.preset canvas { width: 100%; height: auto; border-radius: 4px; image-rendering: auto; }
+.preset span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+footer { flex: 0 0 auto; padding: 4px 14px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); background: var(--panel); display: flex; gap: 12px; }
+footer a { color: var(--accent2); text-decoration: none; }
+footer .spacer { flex: 1; }
+
+@media (max-width: 860px) {
+  body { overflow: auto; }
+  main { grid-template-columns: 1fr; grid-template-rows: 60vh auto; }
+  #panel { border-left: none; border-top: 1px solid var(--border); }
+  .presets { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+</style>
+</head>
+<body>
+  <header>
+    <h1>Op<span>Art</span> Engine</h1>
+    <span id="subtitle"></span>
+    <span class="spacer"></span>
+    <button id="btn-lang" type="button">Türkçe</button>
+    <button id="btn-theme" type="button" title="Theme">◐</button>
+    <button id="btn-fs" type="button" title="Fullscreen">⛶</button>
+  </header>
+  <main>
+    <div id="stage">
+      <canvas id="view" width="800" height="800"></canvas>
+      <div id="overlay" hidden></div>
+    </div>
+    <aside id="panel"></aside>
+  </main>
+  <footer>
+    <span id="status">…</span>
+    <span class="spacer"></span>
+    <span id="hint"></span>
+    <a href="https://github.com/hakanatas/OpArtEEngine" target="_blank" rel="noopener">GitHub</a>
+  </footer>
+  <script id="opart-core-inline">
+/* ==========================================================================
+ * OpArt Engine — rendering core
+ * Pure math, no DOM. Runs identically on the main thread and inside Workers.
+ * Every pixel is evaluated as a scalar field: coordinates -> symmetry ->
+ * warps -> pattern layers -> blend -> palette -> post-processing.
+ * ========================================================================== */
+(function (root) {
+  'use strict';
+
+  const TAU = Math.PI * 2;
+  const PI = Math.PI;
+
+  /* ---------- small math helpers ---------- */
+  function fract(x) { return x - Math.floor(x); }
+  function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+  function mix(a, b, t) { return a + (b - a) * t; }
+  function tri(x) { return Math.abs(fract(x) * 2 - 1); }        // 1 at 0, 0 at .5, period 1
+  function smoothstep(e0, e1, x) { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); }
+
+  /* integer hash -> [0,1) */
+  function hash2(x, y, seed) {
+    let h = (x * 374761393 + y * 668265263 + seed * 1274126177) | 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    h = h ^ (h >>> 16);
+    return (h >>> 0) / 4294967296;
+  }
+  function vnoise(x, y, seed) {
+    const xi = Math.floor(x), yi = Math.floor(y);
+    const xf = x - xi, yf = y - yi;
+    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    const a = hash2(xi, yi, seed), b = hash2(xi + 1, yi, seed);
+    const c = hash2(xi, yi + 1, seed), d = hash2(xi + 1, yi + 1, seed);
+    return mix(mix(a, b, u), mix(c, d, u), v);
+  }
+  function fbm(x, y, seed, oct) {
+    let s = 0, amp = 0.5, f = 1, n = 0;
+    for (let i = 0; i < oct; i++) {
+      s += amp * vnoise(x * f, y * f, seed + i * 17);
+      n += amp; amp *= 0.5; f *= 2;
+    }
+    return s / n;
+  }
+
+  /* pointy-top hex cell lookup. Returns [dx, dy, q, r] relative to cell centre (circumradius 1) */
+  const _hex = [0, 0, 0, 0];
+  function hexCell(x, y) {
+    const q = (0.5773502691896258 * x - y / 3), r = (2 / 3) * y;
+    let rx = Math.round(q), rz = Math.round(r), ry = Math.round(-q - r);
+    const dx = Math.abs(rx - q), dy = Math.abs(ry - (-q - r)), dz = Math.abs(rz - r);
+    if (dx > dy && dx > dz) rx = -ry - rz; else if (dy > dz) ry = -rx - rz; else rz = -rx - ry;
+    const cx = 1.7320508075688772 * (rx + rz / 2), cy = 1.5 * rz;
+    _hex[0] = x - cx; _hex[1] = y - cy; _hex[2] = rx; _hex[3] = rz;
+    return _hex;
+  }
+
+  /* ---------- pattern catalogue ----------
+   * Each pattern maps (u, v, r, angle, layer, tAngle, seed) -> continuous phase.
+   * The phase is later shaped (square / sine / triangle / steps) into a value in [0,1].
+   * `uses` lists which generic layer parameters the pattern reads and the label key for each.
+   */
+  const PATTERNS = [
+    { id: 'stripes',   uses: { freq: 'density', amp: 'tilt' } },
+    { id: 'waves',     uses: { freq: 'density', amp: 'amplitude', freq2: 'waveFreq' } },
+    { id: 'cataract',  uses: { freq: 'density', amp: 'amplitude', freq2: 'waveFreq' } },
+    { id: 'zigzag',    uses: { freq: 'density', amp: 'amplitude', freq2: 'waveFreq' } },
+    { id: 'rings',     uses: { freq: 'density', amp: 'wobble', freq2: 'waveFreq', count: 'lobes' } },
+    { id: 'squares',   uses: { freq: 'density', amp: 'rounding' } },
+    { id: 'diamonds',  uses: { freq: 'density' } },
+    { id: 'polygons',  uses: { freq: 'density', count: 'sides', amp: 'twist' } },
+    { id: 'rays',      uses: { count: 'rays', amp: 'curl' } },
+    { id: 'spiral',    uses: { freq: 'density', count: 'arms' } },
+    { id: 'vortex',    uses: { freq: 'density', count: 'arms' } },
+    { id: 'tunnel',    uses: { freq: 'density', count: 'rays' } },
+    { id: 'blaze',     uses: { freq: 'density', amp: 'amplitude', count: 'teeth' } },
+    { id: 'checker',   uses: { freq: 'density', amp: 'shear' } },
+    { id: 'polarCheck',uses: { freq: 'density', count: 'sectors' } },
+    { id: 'dots',      uses: { freq: 'density', amp: 'dotSize', freq2: 'modulation' } },
+    { id: 'hexagons',  uses: { freq: 'density', freq2: 'ringsPerCell', amp: 'parityShift' } },
+    { id: 'cubes',     uses: { freq: 'density', amp: 'rotation' } },
+    { id: 'weave',     uses: { freq: 'density', amp: 'amplitude', freq2: 'waveFreq' } },
+    { id: 'lissajous', uses: { freq: 'density', count: 'ratio', amp: 'amplitude' } },
+    { id: 'contours',  uses: { freq: 'density', count: 'bands', amp: 'amplitude' } },
+    { id: 'interference', uses: { freq: 'density', amp: 'separation' } }
+  ];
+  const PATTERN_IDS = PATTERNS.map(p => p.id);
+
+  const PF = {
+    stripes(u, v, r, a, L, t) { return (u + L.amp * v) * L.freq; },
+    waves(u, v, r, a, L, t) { return u * L.freq + L.amp * Math.sin(v * L.freq2 * PI + t); },
+    cataract(u, v, r, a, L, t) {
+      const env = 0.5 + 0.5 * Math.cos(u * PI * 0.9);
+      return u * L.freq + L.amp * env * Math.sin(v * L.freq2 * PI + u * 2 + t);
+    },
+    zigzag(u, v, r, a, L, t) { return u * L.freq + L.amp * 2 * tri(v * L.freq2 * 0.5 + t / TAU); },
+    rings(u, v, r, a, L, t) { return (r + L.amp * 0.1 * Math.sin(a * L.count + t) * Math.sin(r * L.freq2)) * L.freq; },
+    squares(u, v, r, a, L, t) {
+      const au = Math.abs(u), av = Math.abs(v);
+      const box = Math.max(au, av);
+      return mix(box, r, clamp(L.amp, 0, 1)) * L.freq;
+    },
+    diamonds(u, v, r, a, L, t) { return (Math.abs(u) + Math.abs(v)) * L.freq; },
+    polygons(u, v, r, a, L, t) {
+      const n = Math.max(3, Math.round(L.count));
+      const seg = TAU / n;
+      const aa = a + L.amp * r * 2;
+      const m = aa - seg * Math.floor(aa / seg) - seg / 2;
+      return r * Math.cos(m) / Math.cos(seg / 2) * L.freq;
+    },
+    rays(u, v, r, a, L, t) { return (a + L.amp * r * 3) / TAU * L.count; },
+    spiral(u, v, r, a, L, t) { return r * L.freq + a / TAU * L.count; },
+    vortex(u, v, r, a, L, t) { return Math.log(r + 0.02) * L.freq * 0.35 + a / TAU * L.count; },
+    tunnel(u, v, r, a, L, t) { return (L.freq * 0.12) / (r + 0.04) + a / TAU * L.count; },
+    blaze(u, v, r, a, L, t) { return r * L.freq + L.amp * tri(a / TAU * L.count + t / TAU); },
+    checker(u, v, r, a, L, t) {
+      const x = u * L.freq * 0.5, y = (v + L.amp * u) * L.freq * 0.5;
+      return (Math.floor(x) + Math.floor(y)) * 0.5;
+    },
+    polarCheck(u, v, r, a, L, t) {
+      return (Math.floor(r * L.freq * 0.5) + Math.floor(a / TAU * L.count)) * 0.5;
+    },
+    dots(u, v, r, a, L, t) {
+      const f = L.freq * 0.5;
+      const x = u * f, y = v * f;
+      const dx = x - Math.floor(x) - 0.5, dy = y - Math.floor(y) - 0.5;
+      const d = Math.sqrt(dx * dx + dy * dy) * 2;                 // 0 at centre, 1 at cell edge
+      const size = clamp(L.amp * (0.55 + 0.45 * Math.cos(r * L.freq2 * PI + t)), 0.001, 2);
+      return clamp(d / (2 * size), 0, 0.9999);                    // < duty  => inside the dot
+    },
+    hexagons(u, v, r, a, L, t) {
+      const f = L.freq * 0.25;
+      const h = hexCell(u * f, v * f);
+      const adx = Math.abs(h[0]), ady = Math.abs(h[1]);
+      const hd = Math.max(adx, 0.5 * adx + 0.8660254 * ady) / 0.8660254;
+      const parity = ((h[2] + h[3]) & 1) ? L.amp * 0.5 : 0;
+      return hd * L.freq2 * 0.5 + parity;
+    },
+    cubes(u, v, r, a, L, t) {
+      const f = L.freq * 0.25;
+      const h = hexCell(u * f, v * f);
+      let ang = Math.atan2(h[1], h[0]) + PI * 0.5 + L.amp * PI * 0.6667;   // boundaries hit hex vertices
+      ang -= TAU * Math.floor(ang / TAU);
+      const sector = Math.floor(ang / (TAU / 3)) % 3;
+      return sector / 3 + 0.001;
+    },
+    weave(u, v, r, a, L, t) {
+      const s1 = Math.sin(u * L.freq * PI + L.amp * Math.sin(v * L.freq2 * PI + t));
+      const s2 = Math.sin(v * L.freq * PI + L.amp * Math.sin(u * L.freq2 * PI - t));
+      return (s1 * s2) * 0.25 + 0.25;
+    },
+    lissajous(u, v, r, a, L, t) {
+      return (Math.sin(u * L.freq * 0.5 * PI + t) + Math.sin(v * L.freq * 0.5 * PI * (L.count / 4) * L.amp + t)) * 0.5;
+    },
+    contours(u, v, r, a, L, t, seed) {
+      const n = fbm(u * L.freq * 0.25 + t * 0.15, v * L.freq * 0.25, seed, 4);
+      return n * L.count * Math.max(0.05, L.amp);
+    },
+    interference(u, v, r, a, L, t) {
+      const s = L.amp * 0.5;
+      const d1 = Math.sqrt((u - s) * (u - s) + v * v);
+      const d2 = Math.sqrt((u + s) * (u + s) + v * v);
+      return (Math.cos(d1 * L.freq * PI + t) + Math.cos(d2 * L.freq * PI - t)) * 0.25 + 0.5;
+    }
+  };
+
+  const SHAPES = ['hard', 'smooth', 'tri', 'saw', 'steps'];
+  const BLENDS = ['difference', 'multiply', 'screen', 'average', 'min', 'max', 'add'];
+  const COLOR_MODES = ['discrete', 'gradient'];
+
+  /* ---------- state ---------- */
+  function defaultLayer(on) {
+    return {
+      on: !!on, pattern: 'waves',
+      freq: 14, amp: 0.5, freq2: 3, count: 8,
+      phase: 0, drift: 1, cx: 0, cy: 0, scale: 1,
+      shape: 'hard', duty: 0.5, steps: 3
+    };
+  }
+  function defaultState() {
+    return {
+      v: 1,
+      seed: 20240101,
+      zoom: 1, rot: 0, panX: 0, panY: 0,
+      symSeg: 1, symMirror: false, mirrorX: false, mirrorY: false,
+      warp: {
+        bulge: 0, twist: 0,
+        ripple: 0, rippleFreq: 6,
+        wave: 0, waveFreq: 3,
+        noise: 0, noiseFreq: 2,
+        animate: true
+      },
+      layers: [defaultLayer(true), Object.assign(defaultLayer(false), { pattern: 'rings', freq: 16 })],
+      blend: 'difference',
+      palette: ['#000000', '#ffffff'],
+      colorMode: 'discrete',
+      palRepeat: 1, palOffset: 0,
+      gamma: 1, invert: false, grain: 0, vignette: 0,
+      anim: { play: false, speed: 0.15 },
+      aa: 1
+    };
+  }
+
+  function hexToRgb(hex) {
+    let h = String(hex || '#000').replace('#', '');
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    const n = parseInt(h, 16) || 0;
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+
+  /* Convert the user-facing state into a flat, numeric structure for the inner loop */
+  function prepare(S, t) {
+    const pal = (S.palette && S.palette.length ? S.palette : ['#000', '#fff']).map(hexToRgb);
+    const layers = [];
+    for (let i = 0; i < S.layers.length; i++) {
+      const L = S.layers[i];
+      if (!L.on && i > 0) continue;
+      layers.push({
+        fn: PF[L.pattern] || PF.stripes,
+        needsSeed: L.pattern === 'contours',
+        freq: +L.freq, amp: +L.amp, freq2: +L.freq2, count: +L.count,
+        phase: +L.phase + t * (+L.drift),
+        cx: +L.cx, cy: +L.cy, invScale: 1 / Math.max(0.05, +L.scale || 1),
+        shape: SHAPES.indexOf(L.shape) < 0 ? 0 : SHAPES.indexOf(L.shape),
+        duty: clamp(+L.duty, 0.01, 0.99),
+        steps: Math.max(2, Math.round(+L.steps || 2))
+      });
+    }
+    const W = S.warp || {};
+    const tAng = t * TAU;
+    const wt = W.animate ? tAng : 0;
+    const rotC = Math.cos(-S.rot * PI / 180), rotS = Math.sin(-S.rot * PI / 180);
+    return {
+      seed: (S.seed | 0) & 0x7fffffff,
+      invZoom: 1 / Math.max(0.05, S.zoom), rotC, rotS,
+      panX: +S.panX, panY: +S.panY,
+      symSeg: Math.max(1, Math.round(S.symSeg || 1)), symMirror: !!S.symMirror,
+      mirrorX: !!S.mirrorX, mirrorY: !!S.mirrorY,
+      bulge: +W.bulge || 0, bulgePow: Math.pow(2, (+W.bulge || 0) * 1.5),
+      twist: +W.twist || 0,
+      ripple: +W.ripple || 0, rippleFreq: +W.rippleFreq || 1,
+      wave: +W.wave || 0, waveFreq: +W.waveFreq || 1,
+      noise: +W.noise || 0, noiseFreq: +W.noiseFreq || 1,
+      wt,
+      layers,
+      blend: Math.max(0, BLENDS.indexOf(S.blend)),
+      pal, palN: pal.length,
+      gradient: S.colorMode === 'gradient',
+      palRepeat: +S.palRepeat || 1, palOffset: +S.palOffset || 0,
+      gamma: +S.gamma || 1, invert: !!S.invert,
+      grain: +S.grain || 0, vignette: +S.vignette || 0,
+      tAng
+    };
+  }
+
+  function shapeValue(phase, shape, duty, steps) {
+    switch (shape) {
+      case 0: return fract(phase) < duty ? 0 : 1;                   // hard
+      case 1: return 0.5 - 0.5 * Math.cos(phase * TAU);              // smooth
+      case 2: return tri(phase);                                     // triangle
+      case 3: return fract(phase);                                   // saw
+      default: { const f = fract(phase); return Math.floor(f * steps) / (steps - 1); }   // steps
+    }
+  }
+
+  /* Evaluate one sample. Returns packed 0xRRGGBB */
+  function shade(px, py, P) {
+    // px, py: normalised so the short axis spans [-1, 1]
+    let u = px * P.invZoom, v = py * P.invZoom;
+    if (P.rotC !== 1) { const nu = u * P.rotC - v * P.rotS; v = u * P.rotS + v * P.rotC; u = nu; }
+    u -= P.panX; v -= P.panY;
+    const r0 = Math.sqrt(u * u + v * v);
+
+    if (P.mirrorX) u = Math.abs(u);
+    if (P.mirrorY) v = Math.abs(v);
+
+    let r = Math.sqrt(u * u + v * v), a = Math.atan2(v, u);
+    let polarDirty = false;
+
+    if (P.symSeg > 1) {
+      const seg = TAU / P.symSeg;
+      a = a - seg * Math.floor(a / seg);
+      if (P.symMirror && a > seg * 0.5) a = seg - a;
+      polarDirty = true;
+    }
+    if (P.bulge !== 0) { r = Math.pow(r, P.bulgePow); polarDirty = true; }
+    if (P.twist !== 0) { a += P.twist * r * PI; polarDirty = true; }
+    if (P.ripple !== 0) { r += P.ripple * 0.15 * Math.sin(r * P.rippleFreq * PI - P.wt); polarDirty = true; }
+    if (polarDirty) { u = r * Math.cos(a); v = r * Math.sin(a); }
+    if (P.wave !== 0) {
+      const nu = u + P.wave * 0.5 * Math.sin(v * P.waveFreq * PI + P.wt);
+      v = v + P.wave * 0.5 * Math.sin(u * P.waveFreq * PI - P.wt);
+      u = nu;
+      polarDirty = true;
+    }
+    if (P.noise !== 0) {
+      const f = P.noiseFreq;
+      u += P.noise * (fbm(u * f, v * f, P.seed, 3) - 0.5) * 1.5;
+      v += P.noise * (fbm(u * f + 31.7, v * f - 17.3, P.seed + 99, 3) - 0.5) * 1.5;
+      polarDirty = true;
+    }
+
+    // layers
+    let val = 0;
+    const layers = P.layers;
+    for (let i = 0; i < layers.length; i++) {
+      const L = layers[i];
+      const lu = (u - L.cx) * L.invScale, lv = (v - L.cy) * L.invScale;
+      const lr = Math.sqrt(lu * lu + lv * lv), la = Math.atan2(lv, lu);
+      const ph = L.fn(lu, lv, lr, la, L, P.tAng, P.seed) + L.phase;
+      const x = shapeValue(ph, L.shape, L.duty, L.steps);
+      if (i === 0) { val = x; continue; }
+      switch (P.blend) {
+        case 0: val = Math.abs(val - x); break;
+        case 1: val = val * x; break;
+        case 2: val = 1 - (1 - val) * (1 - x); break;
+        case 3: val = (val + x) * 0.5; break;
+        case 4: val = Math.min(val, x); break;
+        case 5: val = Math.max(val, x); break;
+        default: val = Math.min(1, val + x);
+      }
+    }
+
+    if (P.gamma !== 1) val = Math.pow(val, P.gamma);
+    if (P.invert) val = 1 - val;
+
+    // palette
+    let cr, cg, cb;
+    const pal = P.pal, n = P.palN;
+    let x = val;
+    if (P.palRepeat !== 1 || P.palOffset !== 0) x = fract(x * P.palRepeat + P.palOffset);
+    if (P.gradient && n > 1) {
+      const pos = x * (n - 1);
+      let i = Math.floor(pos); if (i >= n - 1) i = n - 2;
+      const f = pos - i;
+      const c0 = pal[i], c1 = pal[i + 1];
+      cr = c0[0] + (c1[0] - c0[0]) * f; cg = c0[1] + (c1[1] - c0[1]) * f; cb = c0[2] + (c1[2] - c0[2]) * f;
+    } else {
+      let i = Math.floor(x * n); if (i >= n) i = n - 1; if (i < 0) i = 0;
+      const c = pal[i]; cr = c[0]; cg = c[1]; cb = c[2];
+    }
+
+    if (P.vignette > 0) {
+      const k = 1 - P.vignette * smoothstep(0.6, 1.6, r0);
+      cr *= k; cg *= k; cb *= k;
+    }
+    if (P.grain > 0) {
+      const g = (hash2((px * 4096) | 0, (py * 4096) | 0, P.seed + 7) - 0.5) * P.grain * 120;
+      cr += g; cg += g; cb += g;
+    }
+    cr = cr < 0 ? 0 : cr > 255 ? 255 : cr;
+    cg = cg < 0 ? 0 : cg > 255 ? 255 : cg;
+    cb = cb < 0 ? 0 : cb > 255 ? 255 : cb;
+    return ((cr | 0) << 16) | ((cg | 0) << 8) | (cb | 0);
+  }
+
+  /* Render rows [y0, y1) of a w x h image into buf (RGBA, starts at row y0). */
+  function renderRows(buf, w, h, y0, y1, S, t, ss) {
+    const P = prepare(S, t);
+    ss = Math.max(1, Math.min(4, ss | 0));
+    const m = Math.min(w, h);
+    const sx = 2 / m, sy = 2 / m;
+    const ox = -w / m, oy = -h / m;
+    let o = 0;
+    if (ss === 1) {
+      for (let y = y0; y < y1; y++) {
+        const py = oy + (y + 0.5) * sy;
+        for (let x = 0; x < w; x++) {
+          const c = shade(ox + (x + 0.5) * sx, py, P);
+          buf[o++] = c >> 16; buf[o++] = (c >> 8) & 255; buf[o++] = c & 255; buf[o++] = 255;
+        }
+      }
+    } else {
+      const n = ss * ss, step = 1 / ss, half = step * 0.5;
+      for (let y = y0; y < y1; y++) {
+        for (let x = 0; x < w; x++) {
+          let r = 0, g = 0, b = 0;
+          for (let j = 0; j < ss; j++) {
+            const py = oy + (y + half + j * step) * sy;
+            for (let i = 0; i < ss; i++) {
+              const c = shade(ox + (x + half + i * step) * sx, py, P);
+              r += c >> 16; g += (c >> 8) & 255; b += c & 255;
+            }
+          }
+          buf[o++] = r / n; buf[o++] = g / n; buf[o++] = b / n; buf[o++] = 255;
+        }
+      }
+    }
+    return buf;
+  }
+
+  /* Worker entry point: shared by js/worker.js and by inline Blob workers */
+  function workerMain(self) {
+    self.onmessage = function (e) {
+      const d = e.data;
+      const rows = d.y1 - d.y0;
+      const buf = new Uint8ClampedArray(rows * d.w * 4);
+      renderRows(buf, d.w, d.h, d.y0, d.y1, d.state, d.t, d.ss);
+      self.postMessage({ id: d.id, y0: d.y0, y1: d.y1, buf: buf.buffer }, [buf.buffer]);
+    };
+  }
+
+  root.OpArt = {
+    TAU, fract, clamp, mix, tri, hash2, vnoise, fbm,
+    PATTERNS, PATTERN_IDS, PF, SHAPES, BLENDS, COLOR_MODES,
+    defaultState, defaultLayer, hexToRgb, prepare, shade, renderRows, workerMain
+  };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+  <script>
+/* UI strings. Turkish and English. */
+(function (root) {
+  'use strict';
+  const STR = {
+    en: {
+      appTitle: 'OpArt Engine', subtitle: 'Advanced optical-art generator',
+      secPattern: 'Pattern', secLayer2: 'Second layer', secTransform: 'Transform', secWarp: 'Distortion',
+      secSymmetry: 'Symmetry', secColor: 'Colour', secPost: 'Finish', secAnim: 'Animation', secCanvas: 'Canvas',
+      secPresets: 'Presets', secActions: 'Actions',
+      pattern: 'Pattern', shape: 'Edge shape', duty: 'Line weight', steps: 'Bands', phase: 'Phase', drift: 'Drift (anim)',
+      cx: 'Centre X', cy: 'Centre Y', scale: 'Scale', enable: 'Enable', blend: 'Blend mode',
+      density: 'Density', amplitude: 'Amplitude', waveFreq: 'Wave frequency', tilt: 'Tilt', wobble: 'Wobble',
+      lobes: 'Lobes', rounding: 'Rounding', sides: 'Sides', twist: 'Twist', rays: 'Rays', curl: 'Curl', arms: 'Arms',
+      teeth: 'Teeth', shear: 'Shear', sectors: 'Sectors', dotSize: 'Dot size', modulation: 'Size modulation',
+      ringsPerCell: 'Rings per cell', parityShift: 'Parity shift', rotation: 'Rotation', ratio: 'Ratio',
+      bands: 'Bands', separation: 'Separation',
+      zoom: 'Zoom', rot: 'Rotation', panX: 'Pan X', panY: 'Pan Y',
+      bulge: 'Bulge / pinch', twistW: 'Twist', ripple: 'Ripple', rippleFreq: 'Ripple frequency',
+      wave: 'Wave', waveFreqW: 'Wave frequency', noise: 'Noise warp', noiseFreq: 'Noise scale', animateWarp: 'Animate distortion',
+      symSeg: 'Kaleidoscope segments', symMirror: 'Mirror segments', mirrorX: 'Mirror X', mirrorY: 'Mirror Y',
+      palette: 'Palette', colorMode: 'Colour mapping', palRepeat: 'Palette repeat', palOffset: 'Palette offset',
+      addColor: '+ colour', palettePresets: 'Palette presets',
+      gamma: 'Gamma', invert: 'Invert', grain: 'Grain', vignette: 'Vignette', aa: 'Anti-aliasing',
+      play: 'Play', pause: 'Pause', speed: 'Speed (cycles/s)',
+      aspect: 'Aspect ratio', fitWindow: 'Fit window', square: 'Square 1:1',
+      randomize: 'Randomise', mutate: 'Mutate', reset: 'Reset', undo: 'Undo', redo: 'Redo',
+      exportPng: 'Export PNG', exportSize: 'Export size', copyLink: 'Copy link', linkCopied: 'Link copied',
+      saveJson: 'Save JSON', loadJson: 'Load JSON', record: 'Record 6s video', recording: 'Recording…',
+      fullscreen: 'Fullscreen', seed: 'Seed', newSeed: 'New seed', language: 'Türkçe', theme: 'Theme',
+      renderTime: 'render', exportBusy: 'Rendering export…', hint: 'Drag to pan · wheel to zoom · Space play · R random · M mutate',
+      shapes: { hard: 'Hard', smooth: 'Smooth', tri: 'Triangle', saw: 'Sawtooth', steps: 'Stepped' },
+      blends: { difference: 'Difference (XOR)', multiply: 'Multiply', screen: 'Screen', average: 'Average', min: 'Minimum', max: 'Maximum', add: 'Add' },
+      colorModes: { discrete: 'Discrete bands', gradient: 'Gradient' },
+      patterns: {
+        stripes: 'Stripes', waves: 'Waves (Riley)', cataract: 'Cataract', zigzag: 'Zigzag', rings: 'Rings',
+        squares: 'Concentric squares', diamonds: 'Diamonds', polygons: 'Polygons', rays: 'Rays', spiral: 'Spiral',
+        vortex: 'Vortex', tunnel: 'Tunnel', blaze: 'Blaze', checker: 'Checkerboard', polarCheck: 'Polar checker (Vega)',
+        dots: 'Dot grid (Vasarely)', hexagons: 'Hexagons', cubes: 'Tumbling cubes', weave: 'Weave', lissajous: 'Lissajous',
+        contours: 'Noise contours', interference: 'Interference'
+      }
+    },
+    tr: {
+      appTitle: 'OpArt Engine', subtitle: 'Gelişmiş optik sanat üreteci',
+      secPattern: 'Desen', secLayer2: 'İkinci katman', secTransform: 'Dönüşüm', secWarp: 'Bozunum',
+      secSymmetry: 'Simetri', secColor: 'Renk', secPost: 'Bitiş', secAnim: 'Animasyon', secCanvas: 'Tuval',
+      secPresets: 'Hazır ayarlar', secActions: 'İşlemler',
+      pattern: 'Desen', shape: 'Kenar biçimi', duty: 'Çizgi kalınlığı', steps: 'Bant sayısı', phase: 'Faz', drift: 'Kayma (anim.)',
+      cx: 'Merkez X', cy: 'Merkez Y', scale: 'Ölçek', enable: 'Etkin', blend: 'Karışım modu',
+      density: 'Yoğunluk', amplitude: 'Genlik', waveFreq: 'Dalga frekansı', tilt: 'Eğim', wobble: 'Salınım',
+      lobes: 'Lob', rounding: 'Yuvarlama', sides: 'Kenar sayısı', twist: 'Burgu', rays: 'Işın', curl: 'Kıvrım', arms: 'Kol',
+      teeth: 'Diş', shear: 'Kayma', sectors: 'Dilim', dotSize: 'Nokta boyu', modulation: 'Boy modülasyonu',
+      ringsPerCell: 'Hücre başına halka', parityShift: 'Parite kayması', rotation: 'Döndürme', ratio: 'Oran',
+      bands: 'Bant', separation: 'Ayrım',
+      zoom: 'Yakınlaştırma', rot: 'Döndürme', panX: 'Kaydır X', panY: 'Kaydır Y',
+      bulge: 'Şişirme / sıkma', twistW: 'Burgu', ripple: 'Dalgacık', rippleFreq: 'Dalgacık frekansı',
+      wave: 'Dalga', waveFreqW: 'Dalga frekansı', noise: 'Gürültü bozunumu', noiseFreq: 'Gürültü ölçeği', animateWarp: 'Bozunumu canlandır',
+      symSeg: 'Kaleydoskop dilimi', symMirror: 'Dilimleri aynala', mirrorX: 'X aynala', mirrorY: 'Y aynala',
+      palette: 'Palet', colorMode: 'Renk eşleme', palRepeat: 'Palet tekrarı', palOffset: 'Palet kayması',
+      addColor: '+ renk', palettePresets: 'Hazır paletler',
+      gamma: 'Gama', invert: 'Ters çevir', grain: 'Gren', vignette: 'Vinyet', aa: 'Kenar yumuşatma',
+      play: 'Oynat', pause: 'Duraklat', speed: 'Hız (döngü/s)',
+      aspect: 'En-boy oranı', fitWindow: 'Pencereye sığdır', square: 'Kare 1:1',
+      randomize: 'Rastgele', mutate: 'Mutasyon', reset: 'Sıfırla', undo: 'Geri al', redo: 'Yinele',
+      exportPng: 'PNG dışa aktar', exportSize: 'Dışa aktarma boyutu', copyLink: 'Bağlantıyı kopyala', linkCopied: 'Bağlantı kopyalandı',
+      saveJson: 'JSON kaydet', loadJson: 'JSON yükle', record: '6 sn video kaydet', recording: 'Kaydediliyor…',
+      fullscreen: 'Tam ekran', seed: 'Tohum', newSeed: 'Yeni tohum', language: 'English', theme: 'Tema',
+      renderTime: 'çizim', exportBusy: 'Dışa aktarma çiziliyor…', hint: 'Sürükle: kaydır · Tekerlek: yakınlaştır · Boşluk: oynat · R: rastgele · M: mutasyon',
+      shapes: { hard: 'Sert', smooth: 'Yumuşak', tri: 'Üçgen', saw: 'Testere', steps: 'Basamaklı' },
+      blends: { difference: 'Fark (XOR)', multiply: 'Çarp', screen: 'Ekran', average: 'Ortalama', min: 'Minimum', max: 'Maksimum', add: 'Topla' },
+      colorModes: { discrete: 'Ayrık bantlar', gradient: 'Geçişli' },
+      patterns: {
+        stripes: 'Çizgiler', waves: 'Dalgalar (Riley)', cataract: 'Katarakt', zigzag: 'Zikzak', rings: 'Halkalar',
+        squares: 'İç içe kareler', diamonds: 'Baklava', polygons: 'Çokgenler', rays: 'Işınlar', spiral: 'Sarmal',
+        vortex: 'Girdap', tunnel: 'Tünel', blaze: 'Alev (Blaze)', checker: 'Dama', polarCheck: 'Kutupsal dama (Vega)',
+        dots: 'Nokta ızgarası (Vasarely)', hexagons: 'Altıgenler', cubes: 'Yuvarlanan küpler', weave: 'Dokuma', lissajous: 'Lissajous',
+        contours: 'Gürültü eşyükseltileri', interference: 'Girişim'
+      }
+    }
+  };
+  let lang = 'en';
+  function t(key) {
+    const d = STR[lang] || STR.en;
+    if (key.indexOf('.') > 0) {
+      const [a, b] = key.split('.');
+      return (d[a] && d[a][b]) || (STR.en[a] && STR.en[a][b]) || b;
+    }
+    return d[key] !== undefined ? d[key] : (STR.en[key] !== undefined ? STR.en[key] : key);
+  }
+  root.I18N = {
+    t,
+    setLang(l) { lang = STR[l] ? l : 'en'; },
+    getLang() { return lang; },
+    languages: Object.keys(STR)
+  };
+})(window);
+
+</script>
+  <script>
+/* Curated presets. Each entry is a partial state merged over OpArt.defaultState(). */
+(function (root) {
+  'use strict';
+  const L = (o) => Object.assign(root.OpArt.defaultLayer(true), o);
+  const OFF = () => root.OpArt.defaultLayer(false);
+
+  root.PALETTES = [
+    { name: 'Mono', colors: ['#000000', '#ffffff'] },
+    { name: 'Ink', colors: ['#101820', '#f2f2f2'] },
+    { name: 'Riley', colors: ['#1c1c1c', '#e8e4d8', '#c8102e'] },
+    { name: 'Vasarely', colors: ['#0b3d91', '#ffd400', '#e63946', '#2a9d8f'] },
+    { name: 'Anuszkiewicz', colors: ['#ff2d55', '#00c2ff', '#ffd60a', '#1a0033'] },
+    { name: 'Neon', colors: ['#0d0221', '#ff00c8', '#00f0ff', '#f9f871'] },
+    { name: 'Sunset', colors: ['#2b0a3d', '#ff4e00', '#ffb800', '#fff1c1'] },
+    { name: 'Ocean', colors: ['#03045e', '#0077b6', '#00b4d8', '#caf0f8'] },
+    { name: 'Pastel', colors: ['#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#bdb2ff'] },
+    { name: 'Terracotta', colors: ['#3d1e1e', '#b5532c', '#e8b17c', '#f4e7d3'] },
+    { name: 'Forest', colors: ['#0b2b1a', '#1f6f43', '#8ab17d', '#e9f5db'] },
+    { name: 'Cube', colors: ['#111111', '#7a7a7a', '#f4f4f4'] }
+  ];
+
+  root.PRESETS = [
+    { name: 'Riley Waves', state: { layers: [L({ pattern: 'waves', freq: 22, amp: 0.35, freq2: 3, duty: 0.5 }), OFF()] } },
+    { name: 'Vega Bulge', state: { layers: [L({ pattern: 'checker', freq: 24, amp: 0 }), OFF()], warp: { bulge: 0.85, twist: 0, ripple: 0, rippleFreq: 6, wave: 0, waveFreq: 3, noise: 0, noiseFreq: 2, animate: true } } },
+    { name: 'Vasarely Dots', state: { layers: [L({ pattern: 'dots', freq: 20, amp: 0.85, freq2: 2.2, drift: 0 }), OFF()], palette: ['#0b3d91', '#ffd400'] } },
+    { name: 'Moiré Rings', state: { layers: [L({ pattern: 'rings', freq: 34, amp: 0, cx: -0.12 }), L({ pattern: 'rings', freq: 34, amp: 0, cx: 0.12, drift: -1 })], blend: 'difference' } },
+    { name: 'Blaze', state: { layers: [L({ pattern: 'blaze', freq: 18, amp: 0.45, count: 24, drift: 0.5 }), OFF()], warp: { bulge: 0.3, twist: 0, ripple: 0, rippleFreq: 6, wave: 0, waveFreq: 3, noise: 0, noiseFreq: 2, animate: true } } },
+    { name: 'Tumbling Cubes', state: { layers: [L({ pattern: 'cubes', freq: 18, amp: 0, drift: 0, shape: 'steps', steps: 3 }), OFF()], palette: ['#111111', '#7a7a7a', '#f4f4f4'] } },
+    { name: 'Polar Vega', state: { layers: [L({ pattern: 'polarCheck', freq: 26, count: 32, drift: 0.25 }), OFF()], warp: { bulge: -0.4, twist: 0, ripple: 0, rippleFreq: 6, wave: 0, waveFreq: 3, noise: 0, noiseFreq: 2, animate: true } } },
+    { name: 'Kaleido Spiral', state: { layers: [L({ pattern: 'spiral', freq: 12, count: 5, shape: 'smooth' }), OFF()], symSeg: 8, symMirror: true, palette: ['#0d0221', '#ff00c8', '#00f0ff', '#f9f871'], colorMode: 'gradient' } },
+    { name: 'Twisted Tunnel', state: { layers: [L({ pattern: 'tunnel', freq: 20, count: 16, drift: 1 }), OFF()], warp: { bulge: 0, twist: 0.6, ripple: 0, rippleFreq: 6, wave: 0, waveFreq: 3, noise: 0, noiseFreq: 2, animate: true } } },
+    { name: 'Cataract', state: { layers: [L({ pattern: 'cataract', freq: 30, amp: 0.6, freq2: 2, duty: 0.55 }), OFF()], palette: ['#1c1c1c', '#e8e4d8'] } },
+    { name: 'Interference', state: { layers: [L({ pattern: 'interference', freq: 26, amp: 0.7, shape: 'hard', duty: 0.5 }), OFF()], palette: ['#03045e', '#caf0f8'] } },
+    { name: 'Hex Rings', state: { layers: [L({ pattern: 'hexagons', freq: 16, freq2: 6, amp: 1, shape: 'steps', steps: 4 }), OFF()], palette: ['#3d1e1e', '#b5532c', '#e8b17c', '#f4e7d3'] } },
+    { name: 'Noise Contours', state: { layers: [L({ pattern: 'contours', freq: 10, count: 12, amp: 1, shape: 'hard', duty: 0.5 }), OFF()], palette: ['#0b2b1a', '#e9f5db'] } },
+    { name: 'Ripple XOR', state: { layers: [L({ pattern: 'stripes', freq: 16 }), L({ pattern: 'rays', count: 20, drift: 0 })], blend: 'difference', warp: { bulge: 0, twist: 0, ripple: 0.6, rippleFreq: 5, wave: 0, waveFreq: 3, noise: 0, noiseFreq: 2, animate: true } } },
+    { name: 'Gradient Vortex', state: { layers: [L({ pattern: 'vortex', freq: 10, count: 3, shape: 'smooth' }), OFF()], palette: ['#2b0a3d', '#ff4e00', '#ffb800', '#fff1c1'], colorMode: 'gradient', palRepeat: 2 } },
+    { name: 'Organic Weave', state: { layers: [L({ pattern: 'weave', freq: 12, amp: 1.2, freq2: 2, shape: 'steps', steps: 4 }), OFF()], warp: { bulge: 0, twist: 0, ripple: 0, rippleFreq: 6, wave: 0, waveFreq: 3, noise: 0.5, noiseFreq: 1.5, animate: true }, palette: ['#ff2d55', '#00c2ff', '#ffd60a', '#1a0033'] } }
+  ];
+})(window);
+
+</script>
+  <script>
+/* ==========================================================================
+ * OpArt Engine — application layer
+ * UI construction, state/history, worker-backed renderer, export, presets.
+ * ========================================================================== */
+(function () {
+  'use strict';
+  const O = window.OpArt, T = window.I18N.t;
+
+  /* ---------- tiny DOM / utility helpers ---------- */
+  const $ = (s, root) => (root || document).querySelector(s);
+  function el(tag, attrs, ...kids) {
+    const e = document.createElement(tag);
+    if (attrs) for (const k in attrs) {
+      if (k === 'class') e.className = attrs[k];
+      else if (k === 'text') e.textContent = attrs[k];
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), attrs[k]);
+      else if (attrs[k] !== undefined && attrs[k] !== null && attrs[k] !== false) e.setAttribute(k, attrs[k] === true ? '' : attrs[k]);
+    }
+    for (const k of kids) if (k != null) e.appendChild(typeof k === 'string' ? document.createTextNode(k) : k);
+    return e;
+  }
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+  function getPath(o, p) { return p.split('.').reduce((a, k) => (a == null ? a : a[k]), o); }
+  function setPath(o, p, v) { const ks = p.split('.'); let c = o; for (let i = 0; i < ks.length - 1; i++) c = c[ks[i]]; c[ks[ks.length - 1]] = v; }
+  function mulberry32(a) { return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function b64e(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function b64d(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); }
+  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  const fmt = (v, step) => (step >= 1 ? String(Math.round(v)) : (+v).toFixed(step >= 0.1 ? 1 : 2));
+
+  /* Merge a partial state over defaults, tolerating old/partial data. */
+  function normalize(s) {
+    const d = O.defaultState();
+    if (!s || typeof s !== 'object') return d;
+    const out = Object.assign(d, s);
+    out.warp = Object.assign(O.defaultState().warp, s.warp || {});
+    out.anim = Object.assign(O.defaultState().anim, s.anim || {});
+    const layers = Array.isArray(s.layers) ? s.layers : [];
+    out.layers = [0, 1].map((i) => Object.assign(O.defaultLayer(i === 0), layers[i] || {}));
+    out.layers[0].on = true;
+    if (!Array.isArray(out.palette) || out.palette.length < 1) out.palette = ['#000000', '#ffffff'];
+    if (O.PATTERN_IDS.indexOf(out.layers[0].pattern) < 0) out.layers[0].pattern = 'stripes';
+    if (O.PATTERN_IDS.indexOf(out.layers[1].pattern) < 0) out.layers[1].pattern = 'rings';
+    return out;
+  }
+
+  /* ========================================================================
+   * Renderer: worker pool with main-thread fallback
+   * ====================================================================== */
+  const Renderer = {
+    workers: [], ready: false, nextId: 1, jobs: new Map(), nsPerSample: 120,
+    init() {
+      const n = Math.min(8, Math.max(2, navigator.hardwareConcurrency || 4));
+      const inline = document.getElementById('opart-core-inline');
+      let url = null;
+      try {
+        if (inline) {
+          url = URL.createObjectURL(new Blob([inline.textContent + '\n;OpArt.workerMain(self);'], { type: 'text/javascript' }));
+        } else if (location.protocol !== 'file:') {
+          url = 'js/worker.js';
+        }
+        if (url) {
+          for (let i = 0; i < n; i++) {
+            const w = new Worker(url);
+            w.onmessage = (e) => Renderer.onResult(e.data);
+            w.onerror = (e) => { console.warn('worker failed, falling back to main thread', e.message || e); Renderer.disableWorkers(); };
+            this.workers.push(w);
+          }
+          this.ready = true;
+        }
+      } catch (e) { console.warn('workers unavailable', e); this.disableWorkers(); }
+    },
+    disableWorkers() {
+      this.workers.forEach((w) => { try { w.terminate(); } catch (e) { /* ignore */ } });
+      this.workers = []; this.ready = false;
+      for (const [, job] of this.jobs) this.runMainThread(job);
+    },
+    /* Render a full w x h image; resolves with ImageData */
+    render(w, h, state, t, ss) {
+      return new Promise((resolve) => {
+        const id = this.nextId++;
+        const img = new ImageData(w, h);
+        const job = { id, w, h, state, t, ss, img, resolve, remaining: 0, start: performance.now() };
+        this.jobs.set(id, job);
+        if (this.ready && this.workers.length) {
+          const chunks = Math.min(h, this.workers.length * 3);
+          const rows = Math.ceil(h / chunks);
+          let y = 0, k = 0;
+          while (y < h) {
+            const y1 = Math.min(h, y + rows);
+            job.remaining++;
+            this.workers[k % this.workers.length].postMessage({ id, w, h, y0: y, y1, state, t, ss });
+            y = y1; k++;
+          }
+        } else {
+          this.runMainThread(job);
+        }
+      });
+    },
+    runMainThread(job) {
+      setTimeout(() => {
+        if (!this.jobs.has(job.id)) return;
+        O.renderRows(job.img.data, job.w, job.h, 0, job.h, job.state, job.t, job.ss);
+        this.finish(job);
+      }, 0);
+    },
+    onResult(d) {
+      const job = this.jobs.get(d.id);
+      if (!job) return;
+      job.img.data.set(new Uint8ClampedArray(d.buf), d.y0 * job.w * 4);
+      if (--job.remaining <= 0) this.finish(job);
+    },
+    finish(job) {
+      this.jobs.delete(job.id);
+      const ms = performance.now() - job.start;
+      const samples = job.w * job.h * job.ss * job.ss;
+      this.nsPerSample = this.nsPerSample * 0.5 + (ms * 1e6 / samples) * 0.5;
+      job.ms = ms;
+      job.resolve(job);
+    }
+  };
+
+  /* ========================================================================
+   * Application state & history
+   * ====================================================================== */
+  let state = O.defaultState();
+  const past = [], future = [];
+  let time = 0, lastFrame = 0, animRaf = 0;
+  let busy = false, dirty = false, wantFull = false, idleTimer = 0, exporting = false;
+  let interacting = false;
+
+  function snapshot() { const s = clone(state); delete s.anim; return s; }
+  function commit() {
+    const s = snapshot();
+    if (past.length && JSON.stringify(past[past.length - 1]) === JSON.stringify(s)) return;
+    past.push(s); if (past.length > 100) past.shift();
+    future.length = 0;
+    store('opart.state', JSON.stringify(state));
+    updateUndoButtons();
+  }
+  function undo() { if (!past.length) return; future.push(snapshot()); const s = past.pop(); applyState(s, false); }
+  function redo() { if (!future.length) return; past.push(snapshot()); const s = future.pop(); applyState(s, false); }
+  function applyState(s, doCommit) {
+    const anim = state.anim;
+    state = normalize(s);
+    state.anim = anim;
+    if (doCommit !== false) commit();
+    refreshUI();
+    requestRender(true);
+    updateUndoButtons();
+  }
+  function updateUndoButtons() {
+    const u = $('#btn-undo'), r = $('#btn-redo');
+    if (u) u.disabled = !past.length;
+    if (r) r.disabled = !future.length;
+  }
+
+  /* ========================================================================
+   * Canvas / rendering orchestration
+   * ====================================================================== */
+  const view = $('#view');
+  const vctx = view.getContext('2d');
+  const stage = $('#stage');
+  let aspect = load('opart.aspect') || 'fit';
+  let bufCanvas = document.createElement('canvas');
+  const bctx = bufCanvas.getContext('2d');
+
+  function layoutCanvas() {
+    const box = stage.getBoundingClientRect();
+    let w = Math.max(64, box.width - 8), h = Math.max(64, box.height - 8);
+    if (aspect !== 'fit') {
+      const [a, b] = aspect.split(':').map(Number);
+      const r = a / b;
+      if (w / h > r) w = h * r; else h = w / r;
+    }
+    view.style.width = w + 'px'; view.style.height = h + 'px';
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    view.width = Math.round(w * dpr); view.height = Math.round(h * dpr);
+    requestRender(true);
+  }
+
+  function fullSize() {
+    const maxPx = 2.4e6;
+    let w = view.width, h = view.height;
+    const k = Math.sqrt(maxPx / (w * h));
+    if (k < 1) { w = Math.round(w * k); h = Math.round(h * k); }
+    return [w, h];
+  }
+
+  function requestRender(full) {
+    if (full) wantFull = true;
+    dirty = true;
+    if (!busy) kick();
+  }
+
+  function kick() {
+    if (!dirty || exporting) return;
+    dirty = false;
+    const [fw, fh] = fullSize();
+    const quick = interacting || state.anim.play;
+    let w = fw, h = fh, ss = 1;
+    if (quick) {
+      const budgetNs = 30e6;
+      const target = budgetNs / Renderer.nsPerSample;
+      const scale = Math.min(1, Math.sqrt(target / (fw * fh)));
+      const s = Math.max(0.15, scale);
+      w = Math.max(32, Math.round(fw * s)); h = Math.max(32, Math.round(fh * s));
+      wantFull = true;
+    } else {
+      ss = Math.max(1, state.aa | 0);
+      wantFull = false;
+    }
+    busy = true;
+    const t = time;
+    Renderer.render(w, h, state, t, ss).then((job) => {
+      busy = false;
+      present(job.img);
+      setStatus(job);
+      if (dirty) kick();
+      else if (wantFull && !state.anim.play) {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => { if (!interacting) { requestRender(false); } }, 120);
+      }
+    });
+  }
+
+  function present(img) {
+    if (bufCanvas.width !== img.width || bufCanvas.height !== img.height) { bufCanvas.width = img.width; bufCanvas.height = img.height; }
+    bctx.putImageData(img, 0, 0);
+    vctx.imageSmoothingEnabled = true;
+    vctx.imageSmoothingQuality = 'high';
+    vctx.drawImage(bufCanvas, 0, 0, view.width, view.height);
+  }
+
+  let fpsAcc = 0, fpsN = 0, fpsShown = 0;
+  function setStatus(job) {
+    const s = $('#status');
+    if (!s) return;
+    fpsAcc += job.ms; fpsN++;
+    if (fpsN >= 10) { fpsShown = 1000 / (fpsAcc / fpsN); fpsAcc = 0; fpsN = 0; }
+    s.textContent = `${T('seed')}: ${state.seed} · ${job.w}×${job.h}${job.ss > 1 ? ' ×' + job.ss * job.ss + 'AA' : ''} · ${job.ms.toFixed(0)} ms ${T('renderTime')}` +
+      (state.anim.play ? ` · ${fpsShown.toFixed(0)} fps` : '') + ` · ${Renderer.ready ? Renderer.workers.length + ' workers' : 'main thread'}`;
+  }
+
+  /* animation loop */
+  function animLoop(ts) {
+    if (!state.anim.play) { animRaf = 0; return; }
+    if (lastFrame) time += ((ts - lastFrame) / 1000) * state.anim.speed;
+    lastFrame = ts;
+    if (time > 1e6) time -= 1e6;
+    requestRender(false);
+    animRaf = requestAnimationFrame(animLoop);
+  }
+  function setPlay(on) {
+    state.anim.play = !!on;
+    const b = $('#btn-play');
+    if (b) b.textContent = on ? '⏸ ' + T('pause') : '▶ ' + T('play');
+    lastFrame = 0;
+    if (on && !animRaf) animRaf = requestAnimationFrame(animLoop);
+    if (!on) requestRender(true);
+  }
+
+  /* ========================================================================
+   * UI construction
+   * ====================================================================== */
+  const panel = $('#panel');
+  const bindings = [];   // {path, update()}
+  const openState = JSON.parse(load('opart.sections') || '{}');
+
+  function section(id, titleKey, ...kids) {
+    const d = el('details', { class: 'sec', open: openState[id] !== false });
+    d.appendChild(el('summary', { text: T(titleKey) }));
+    const body = el('div', { class: 'sec-body' }, ...kids);
+    d.appendChild(body);
+    d.addEventListener('toggle', () => { openState[id] = d.open; store('opart.sections', JSON.stringify(openState)); });
+    return d;
+  }
+
+  function onInput(path, value) {
+    setPath(state, path, value);
+    interacting = true;
+    requestRender(false);
+  }
+  function onChange() {
+    interacting = false;
+    commit();
+    requestRender(true);
+  }
+
+  function slider(path, labelKey, min, max, step, opts) {
+    opts = opts || {};
+    const v = getPath(state, path);
+    const range = el('input', { type: 'range', min, max, step, value: v });
+    const num = el('input', { type: 'number', min, max, step, value: fmt(v, step) });
+    const label = el('label', { text: T(labelKey) });
+    const row = el('div', { class: 'row' }, label, range, num);
+    if (opts.param) row.dataset.param = opts.param;
+    range.addEventListener('input', () => { num.value = fmt(range.value, step); onInput(path, +range.value); });
+    range.addEventListener('change', onChange);
+    num.addEventListener('change', () => { const x = Math.min(max, Math.max(min, +num.value || 0)); range.value = x; num.value = fmt(x, step); onInput(path, x); onChange(); });
+    range.addEventListener('dblclick', () => { const d = opts.reset !== undefined ? opts.reset : getPath(O.defaultState(), path); if (d !== undefined) { range.value = d; num.value = fmt(d, step); onInput(path, d); onChange(); } });
+    bindings.push({ path, update() { const x = getPath(state, path); range.value = x; num.value = fmt(x, step); }, label, row });
+    return row;
+  }
+
+  function select(path, labelKey, options, onAfter) {
+    const s = el('select');
+    options.forEach((o) => s.appendChild(el('option', { value: o.value, text: o.label })));
+    s.value = getPath(state, path);
+    s.addEventListener('change', () => { setPath(state, path, s.value); if (onAfter) onAfter(s.value); commit(); requestRender(true); });
+    const row = el('div', { class: 'row' }, el('label', { text: T(labelKey) }), s);
+    bindings.push({ path, update() { s.value = getPath(state, path); if (onAfter) onAfter(s.value, true); } });
+    return row;
+  }
+
+  function checkbox(path, labelKey, onAfter) {
+    const c = el('input', { type: 'checkbox' });
+    c.checked = !!getPath(state, path);
+    c.addEventListener('change', () => { setPath(state, path, c.checked); if (onAfter) onAfter(c.checked); commit(); requestRender(true); });
+    const row = el('label', { class: 'row check' }, c, el('span', { text: T(labelKey) }));
+    bindings.push({ path, update() { c.checked = !!getPath(state, path); } });
+    return row;
+  }
+
+  function button(labelKey, fn, attrs) {
+    return el('button', Object.assign({ type: 'button', text: T(labelKey), onclick: fn }, attrs || {}));
+  }
+
+  /* --- layer section (pattern + pattern-specific params) --- */
+  function layerSection(i) {
+    const p = `layers.${i}`;
+    const patternOpts = O.PATTERN_IDS.map((id) => ({ value: id, label: T('patterns.' + id) }));
+    const rows = {};
+    const wrap = el('div');
+    if (i === 1) wrap.appendChild(checkbox(`${p}.on`, 'enable', () => toggleLayerBody()));
+    const body = el('div', { class: 'layer-body' });
+    wrap.appendChild(body);
+    body.appendChild(select(`${p}.pattern`, 'pattern', patternOpts, () => updateRows()));
+    rows.freq = slider(`${p}.freq`, 'density', 1, 80, 0.5, { param: 'freq' });
+    rows.amp = slider(`${p}.amp`, 'amplitude', 0, 2, 0.01, { param: 'amp' });
+    rows.freq2 = slider(`${p}.freq2`, 'waveFreq', 0, 24, 0.1, { param: 'freq2' });
+    rows.count = slider(`${p}.count`, 'lobes', 1, 64, 1, { param: 'count' });
+    for (const k in rows) body.appendChild(rows[k]);
+    body.appendChild(select(`${p}.shape`, 'shape', O.SHAPES.map((s) => ({ value: s, label: T('shapes.' + s) })), () => updateShape()));
+    const dutyRow = slider(`${p}.duty`, 'duty', 0.02, 0.98, 0.01);
+    const stepsRow = slider(`${p}.steps`, 'steps', 2, 8, 1);
+    body.appendChild(dutyRow); body.appendChild(stepsRow);
+    body.appendChild(slider(`${p}.phase`, 'phase', 0, 1, 0.01));
+    body.appendChild(slider(`${p}.drift`, 'drift', -3, 3, 0.05));
+    body.appendChild(slider(`${p}.scale`, 'scale', 0.1, 4, 0.01));
+    body.appendChild(slider(`${p}.cx`, 'cx', -1.5, 1.5, 0.01));
+    body.appendChild(slider(`${p}.cy`, 'cy', -1.5, 1.5, 0.01));
+    if (i === 1) body.appendChild(select('blend', 'blend', O.BLENDS.map((b) => ({ value: b, label: T('blends.' + b) }))));
+
+    function updateRows() {
+      const def = O.PATTERNS.find((x) => x.id === state.layers[i].pattern) || O.PATTERNS[0];
+      for (const k in rows) {
+        const use = def.uses[k];
+        rows[k].hidden = !use;
+        if (use) rows[k].querySelector('label').textContent = T(use);
+      }
+    }
+    function updateShape() {
+      const sh = state.layers[i].shape;
+      dutyRow.hidden = sh !== 'hard';
+      stepsRow.hidden = sh !== 'steps';
+    }
+    function toggleLayerBody() { body.classList.toggle('disabled', !state.layers[i].on); }
+    updateRows(); updateShape(); toggleLayerBody();
+    bindings.push({ path: p, update() { updateRows(); updateShape(); toggleLayerBody(); } });
+    return wrap;
+  }
+
+  /* --- palette editor --- */
+  function paletteEditor() {
+    const wrap = el('div', { class: 'palette' });
+    const list = el('div', { class: 'swatches' });
+    const presets = el('div', { class: 'pal-presets' });
+    function rebuild() {
+      list.innerHTML = '';
+      state.palette.forEach((c, idx) => {
+        const inp = el('input', { type: 'color', value: c });
+        inp.addEventListener('input', () => { state.palette[idx] = inp.value; interacting = true; requestRender(false); });
+        inp.addEventListener('change', () => { state.palette[idx] = inp.value; onChange(); });
+        const rm = el('button', { type: 'button', class: 'mini', text: '×', title: 'remove', onclick: () => { if (state.palette.length > 1) { state.palette.splice(idx, 1); rebuild(); commit(); requestRender(true); } } });
+        list.appendChild(el('div', { class: 'swatch' }, inp, rm));
+      });
+      if (state.palette.length < 8) list.appendChild(button('addColor', () => {
+        const last = state.palette[state.palette.length - 1];
+        state.palette.push(last === '#ffffff' ? '#000000' : '#ffffff'); rebuild(); commit(); requestRender(true);
+      }, { class: 'mini add' }));
+      const rev = button('↔', () => { state.palette.reverse(); rebuild(); commit(); requestRender(true); }, { class: 'mini', title: 'reverse' });
+      rev.textContent = '↔';
+      list.appendChild(rev);
+    }
+    window.PALETTES.forEach((p) => {
+      const b = el('button', { type: 'button', class: 'pal-btn', title: p.name });
+      p.colors.forEach((c) => b.appendChild(el('span', { style: 'background:' + c })));
+      b.addEventListener('click', () => { state.palette = p.colors.slice(); rebuild(); commit(); requestRender(true); });
+      presets.appendChild(b);
+    });
+    rebuild();
+    wrap.appendChild(el('div', { class: 'row-label', text: T('palette') }));
+    wrap.appendChild(list);
+    wrap.appendChild(el('div', { class: 'row-label', text: T('palettePresets') }));
+    wrap.appendChild(presets);
+    bindings.push({ path: 'palette', update: rebuild });
+    return wrap;
+  }
+
+  /* --- preset gallery with live thumbnails --- */
+  function presetGallery() {
+    const grid = el('div', { class: 'presets' });
+    const size = 72;
+    window.PRESETS.forEach((p) => {
+      const c = el('canvas', { width: size, height: size, title: p.name });
+      const img = new ImageData(size, size);
+      const s = normalize(clone(p.state));
+      O.renderRows(img.data, size, size, 0, size, s, 0.2, 1);
+      c.getContext('2d').putImageData(img, 0, 0);
+      const b = el('button', { type: 'button', class: 'preset', onclick: () => { const st = normalize(clone(p.state)); st.seed = state.seed; applyState(st); } }, c, el('span', { text: p.name }));
+      grid.appendChild(b);
+    });
+    return grid;
+  }
+
+  function buildPanel() {
+    panel.innerHTML = '';
+    bindings.length = 0;
+    const aspectOpts = [{ value: 'fit', label: T('fitWindow') }, { value: '1:1', label: T('square') }, { value: '4:3', label: '4:3' }, { value: '3:4', label: '3:4' }, { value: '16:9', label: '16:9' }, { value: '9:16', label: '9:16' }];
+    const aspectSel = el('select');
+    aspectOpts.forEach((o) => aspectSel.appendChild(el('option', { value: o.value, text: o.label })));
+    aspectSel.value = aspect;
+    aspectSel.addEventListener('change', () => { aspect = aspectSel.value; store('opart.aspect', aspect); layoutCanvas(); });
+    const exportSel = el('select');
+    [1024, 2048, 3072, 4096].forEach((n) => exportSel.appendChild(el('option', { value: n, text: n + ' px' })));
+    exportSel.value = load('opart.exportSize') || 2048;
+    exportSel.addEventListener('change', () => store('opart.exportSize', exportSel.value));
+
+    const seedInput = el('input', { type: 'number', value: state.seed, class: 'seed' });
+    seedInput.addEventListener('change', () => { state.seed = (+seedInput.value | 0); commit(); requestRender(true); });
+    bindings.push({ path: 'seed', update() { seedInput.value = state.seed; } });
+
+    panel.append(
+      section('presets', 'secPresets', presetGallery()),
+      section('actions', 'secActions',
+        el('div', { class: 'btns' },
+          button('randomize', randomize, { class: 'primary' }),
+          button('mutate', mutate),
+          button('reset', () => applyState(O.defaultState())),
+          button('undo', undo, { id: 'btn-undo' }),
+          button('redo', redo, { id: 'btn-redo' })),
+        el('div', { class: 'row' }, el('label', { text: T('seed') }), seedInput, button('newSeed', () => { state.seed = (Math.random() * 2147483647) | 0; commit(); refreshUI(); requestRender(true); }, { class: 'mini' })),
+        el('div', { class: 'btns' },
+          button('exportPng', exportPNG, { id: 'btn-export' }), exportSel,
+          button('copyLink', copyLink, { id: 'btn-link' }),
+          button('saveJson', saveJSON), button('loadJson', loadJSON),
+          button('record', recordVideo, { id: 'btn-record' }))),
+      section('pattern', 'secPattern', layerSection(0)),
+      section('layer2', 'secLayer2', layerSection(1)),
+      section('color', 'secColor',
+        paletteEditor(),
+        select('colorMode', 'colorMode', O.COLOR_MODES.map((m) => ({ value: m, label: T('colorModes.' + m) }))),
+        slider('palRepeat', 'palRepeat', 1, 8, 1),
+        slider('palOffset', 'palOffset', 0, 1, 0.01)),
+      section('warp', 'secWarp',
+        slider('warp.bulge', 'bulge', -1, 1, 0.01),
+        slider('warp.twist', 'twistW', -3, 3, 0.01),
+        slider('warp.ripple', 'ripple', -1, 1, 0.01),
+        slider('warp.rippleFreq', 'rippleFreq', 0.5, 30, 0.1),
+        slider('warp.wave', 'wave', -1, 1, 0.01),
+        slider('warp.waveFreq', 'waveFreqW', 0.5, 20, 0.1),
+        slider('warp.noise', 'noise', 0, 2, 0.01),
+        slider('warp.noiseFreq', 'noiseFreq', 0.2, 10, 0.1),
+        checkbox('warp.animate', 'animateWarp')),
+      section('symmetry', 'secSymmetry',
+        slider('symSeg', 'symSeg', 1, 24, 1),
+        checkbox('symMirror', 'symMirror'),
+        checkbox('mirrorX', 'mirrorX'),
+        checkbox('mirrorY', 'mirrorY')),
+      section('transform', 'secTransform',
+        slider('zoom', 'zoom', 0.1, 6, 0.01),
+        slider('rot', 'rot', -180, 180, 1),
+        slider('panX', 'panX', -3, 3, 0.01),
+        slider('panY', 'panY', -3, 3, 0.01)),
+      section('post', 'secPost',
+        slider('gamma', 'gamma', 0.2, 3, 0.01),
+        checkbox('invert', 'invert'),
+        slider('grain', 'grain', 0, 1, 0.01),
+        slider('vignette', 'vignette', 0, 1, 0.01),
+        select('aa', 'aa', [{ value: 1, label: '1×' }, { value: 2, label: '4× (2×2)' }, { value: 3, label: '9× (3×3)' }], (v) => { state.aa = +v; })),
+      section('anim', 'secAnim',
+        el('div', { class: 'btns' }, button('play', () => setPlay(!state.anim.play), { id: 'btn-play' })),
+        slider('anim.speed', 'speed', 0.01, 2, 0.01)),
+      section('canvas', 'secCanvas', el('div', { class: 'row' }, el('label', { text: T('aspect') }), aspectSel))
+    );
+    setPlay(state.anim.play);
+    updateUndoButtons();
+    $('#hint').textContent = T('hint');
+    $('#subtitle').textContent = T('subtitle');
+    $('#btn-lang').textContent = T('language');
+    $('#btn-fs').title = T('fullscreen');
+  }
+
+  function refreshUI() { bindings.forEach((b) => b.update()); }
+
+  /* ========================================================================
+   * Randomise / mutate
+   * ====================================================================== */
+  function randomize() {
+    const seed = (Math.random() * 2147483647) | 0;
+    const R = mulberry32(seed);
+    const pick = (arr) => arr[Math.floor(R() * arr.length)];
+    const rnd = (a, b) => a + R() * (b - a);
+    const s = O.defaultState();
+    s.seed = seed;
+    const layer = (on) => {
+      const L = O.defaultLayer(on);
+      L.pattern = pick(O.PATTERN_IDS);
+      L.freq = Math.round(rnd(6, 40) * 2) / 2;
+      L.amp = +rnd(0, 1.2).toFixed(2);
+      L.freq2 = +rnd(0.5, 6).toFixed(1);
+      L.count = Math.round(rnd(3, 36));
+      if (L.pattern === 'polygons') L.count = Math.round(rnd(3, 8));
+      if (L.pattern === 'dots') { L.amp = +rnd(0.5, 1).toFixed(2); L.freq2 = +rnd(0, 4).toFixed(1); }
+      if (L.pattern === 'contours') { L.count = Math.round(rnd(4, 16)); L.amp = 1; }
+      L.shape = R() < 0.7 ? 'hard' : pick(O.SHAPES);
+      L.duty = +rnd(0.35, 0.65).toFixed(2);
+      L.steps = Math.round(rnd(2, 5));
+      L.drift = R() < 0.5 ? 1 : +rnd(-2, 2).toFixed(2);
+      return L;
+    };
+    s.layers = [layer(true), layer(R() < 0.3)];
+    s.blend = pick(O.BLENDS);
+    const pal = pick(window.PALETTES).colors.slice();
+    s.palette = pal;
+    s.colorMode = R() < 0.75 ? 'discrete' : 'gradient';
+    if (s.colorMode === 'discrete' && pal.length > 2 && s.layers[0].shape === 'hard' && R() < 0.5) { s.layers[0].shape = 'steps'; s.layers[0].steps = pal.length; }
+    const W = s.warp;
+    if (R() < 0.4) W.bulge = +rnd(-0.8, 0.9).toFixed(2);
+    if (R() < 0.3) W.twist = +rnd(-1.5, 1.5).toFixed(2);
+    if (R() < 0.3) { W.ripple = +rnd(-0.7, 0.7).toFixed(2); W.rippleFreq = +rnd(2, 12).toFixed(1); }
+    if (R() < 0.3) { W.wave = +rnd(-0.6, 0.6).toFixed(2); W.waveFreq = +rnd(1, 6).toFixed(1); }
+    if (R() < 0.2) { W.noise = +rnd(0.2, 1).toFixed(2); W.noiseFreq = +rnd(0.5, 4).toFixed(1); }
+    if (R() < 0.3) { s.symSeg = Math.round(rnd(2, 10)); s.symMirror = R() < 0.7; }
+    s.rot = R() < 0.3 ? Math.round(rnd(-45, 45)) : 0;
+    s.zoom = +rnd(0.7, 1.6).toFixed(2);
+    if (R() < 0.15) s.vignette = +rnd(0.2, 0.6).toFixed(2);
+    applyState(s);
+  }
+
+  function mutate() {
+    const s = clone(state);
+    const R = Math.random;
+    const nudge = (obj, key, min, max, k) => { const range = (max - min) * (k || 0.12); obj[key] = Math.min(max, Math.max(min, obj[key] + (R() * 2 - 1) * range)); obj[key] = +obj[key].toFixed(2); };
+    const L = s.layers[0];
+    const ops = [
+      () => nudge(L, 'freq', 1, 80), () => nudge(L, 'amp', 0, 2), () => nudge(L, 'freq2', 0, 24),
+      () => { L.count = Math.max(1, Math.min(64, Math.round(L.count + (R() * 2 - 1) * 6))); },
+      () => nudge(L, 'duty', 0.05, 0.95), () => nudge(L, 'phase', 0, 1, 0.3),
+      () => nudge(s.warp, 'bulge', -1, 1), () => nudge(s.warp, 'twist', -3, 3), () => nudge(s.warp, 'ripple', -1, 1),
+      () => nudge(s.warp, 'wave', -1, 1), () => nudge(s, 'zoom', 0.1, 6), () => nudge(s, 'rot', -180, 180),
+      () => { s.palette = s.palette.map((c) => { const [r, g, b] = O.hexToRgb(c); const j = (x) => Math.max(0, Math.min(255, Math.round(x + (R() * 2 - 1) * 24))); return '#' + [j(r), j(g), j(b)].map((x) => x.toString(16).padStart(2, '0')).join(''); }); }
+    ];
+    const n = 2 + Math.floor(R() * 3);
+    for (let i = 0; i < n; i++) ops[Math.floor(R() * ops.length)]();
+    applyState(s);
+  }
+
+  /* ========================================================================
+   * Export / share / persistence
+   * ====================================================================== */
+  function download(blob, name) {
+    const a = el('a', { href: URL.createObjectURL(blob), download: name });
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  }
+  function overlay(msg) { const o = $('#overlay'); o.hidden = !msg; if (msg) o.textContent = msg; }
+
+  async function exportPNG() {
+    if (exporting) return;
+    exporting = true;
+    overlay(T('exportBusy'));
+    try {
+      const long = +(load('opart.exportSize') || 2048);
+      const r = view.width / view.height;
+      const w = r >= 1 ? long : Math.round(long * r), h = r >= 1 ? Math.round(long / r) : long;
+      const ss = Math.max(2, state.aa | 0);
+      const job = await Renderer.render(w, h, state, time, ss);
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').putImageData(job.img, 0, 0);
+      const blob = await new Promise((res) => c.toBlob(res, 'image/png'));
+      download(blob, `opart-${state.layers[0].pattern}-${state.seed}.png`);
+    } finally {
+      exporting = false; overlay(null); requestRender(true);
+    }
+  }
+
+  function encodeState() { return b64e(JSON.stringify(snapshot())); }
+  function decodeState(str) { try { return normalize(JSON.parse(b64d(str))); } catch (e) { return null; } }
+  function copyLink() {
+    const url = location.origin + location.pathname + '#s=' + encodeState();
+    history.replaceState(null, '', url);
+    const done = () => { const b = $('#btn-link'); const old = T('copyLink'); b.textContent = T('linkCopied'); setTimeout(() => (b.textContent = old), 1500); };
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, done); else done();
+  }
+  function saveJSON() {
+    download(new Blob([JSON.stringify(snapshot(), null, 2)], { type: 'application/json' }), `opart-${state.seed}.json`);
+  }
+  function loadJSON() {
+    const inp = el('input', { type: 'file', accept: '.json,application/json' });
+    inp.addEventListener('change', () => {
+      const f = inp.files[0]; if (!f) return;
+      f.text().then((txt) => { try { applyState(JSON.parse(txt)); } catch (e) { alert('Invalid JSON'); } });
+    });
+    inp.click();
+  }
+  function recordVideo() {
+    if (!('MediaRecorder' in window) || !view.captureStream) { alert('MediaRecorder not supported'); return; }
+    const btn = $('#btn-record');
+    const wasPlaying = state.anim.play;
+    setPlay(true);
+    const stream = view.captureStream(30);
+    const type = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+    const rec = new MediaRecorder(stream, type ? { mimeType: type, videoBitsPerSecond: 8e6 } : undefined);
+    const chunks = [];
+    rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+    rec.onstop = () => {
+      download(new Blob(chunks, { type: rec.mimeType || 'video/webm' }), `opart-${state.seed}.${(rec.mimeType || '').includes('mp4') ? 'mp4' : 'webm'}`);
+      btn.textContent = T('record'); btn.disabled = false;
+      if (!wasPlaying) setPlay(false);
+    };
+    btn.textContent = T('recording'); btn.disabled = true;
+    rec.start(200);
+    setTimeout(() => rec.stop(), 6000);
+  }
+
+  /* ========================================================================
+   * Pointer & keyboard interaction on the canvas
+   * ====================================================================== */
+  (function pointer() {
+    let drag = null;
+    view.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, panX: state.panX, panY: state.panY }; view.setPointerCapture(e.pointerId); });
+    view.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const rect = view.getBoundingClientRect();
+      const m = Math.min(rect.width, rect.height) / 2;
+      let dx = (e.clientX - drag.x) / m, dy = (e.clientY - drag.y) / m;
+      const a = -state.rot * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+      const rx = dx * c - dy * s, ry = dx * s + dy * c;
+      state.panX = +(drag.panX + rx / state.zoom).toFixed(3);
+      state.panY = +(drag.panY + ry / state.zoom).toFixed(3);
+      interacting = true; refreshUI(); requestRender(false);
+    });
+    const end = () => { if (!drag) return; drag = null; interacting = false; commit(); requestRender(true); };
+    view.addEventListener('pointerup', end); view.addEventListener('pointercancel', end);
+    view.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      state.zoom = +Math.min(6, Math.max(0.1, state.zoom * Math.exp(-e.deltaY * 0.0012))).toFixed(3);
+      interacting = true; refreshUI(); requestRender(false);
+      clearTimeout(view._wt); view._wt = setTimeout(() => { interacting = false; commit(); requestRender(true); }, 250);
+    }, { passive: false });
+    view.addEventListener('dblclick', () => { state.zoom = 1; state.panX = 0; state.panY = 0; commit(); refreshUI(); requestRender(true); });
+  })();
+
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+    const k = e.key.toLowerCase();
+    if (e.ctrlKey || e.metaKey) {
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+      else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
+      else if (k === 's') { e.preventDefault(); exportPNG(); }
+      return;
+    }
+    if (k === ' ') { e.preventDefault(); setPlay(!state.anim.play); }
+    else if (k === 'r') randomize();
+    else if (k === 'm') mutate();
+    else if (k === 'i') { state.invert = !state.invert; commit(); refreshUI(); requestRender(true); }
+    else if (k === 'f') toggleFullscreen();
+    else if (k === 'e') exportPNG();
+  });
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) (stage.requestFullscreen || stage.webkitRequestFullscreen).call(stage);
+    else document.exitFullscreen();
+  }
+
+  /* ========================================================================
+   * Boot
+   * ====================================================================== */
+  function boot() {
+    Renderer.init();
+    const savedLang = load('opart.lang') || ((navigator.language || '').startsWith('tr') ? 'tr' : 'en');
+    window.I18N.setLang(savedLang);
+    const theme = load('opart.theme'); if (theme) document.documentElement.dataset.theme = theme;
+
+    let initial = null;
+    const m = location.hash.match(/[#&]s=([^&]+)/);
+    if (m) initial = decodeState(m[1]);
+    if (!initial) { const saved = load('opart.state'); if (saved) { try { initial = normalize(JSON.parse(saved)); } catch (e) { /* ignore */ } } }
+    if (!initial) initial = normalize(clone(window.PRESETS[0].state));
+    state = initial; state.anim.play = false;
+    past.push(snapshot());
+
+    buildPanel();
+    $('#btn-lang').addEventListener('click', () => { const l = window.I18N.getLang() === 'tr' ? 'en' : 'tr'; window.I18N.setLang(l); store('opart.lang', l); buildPanel(); });
+    $('#btn-theme').addEventListener('click', () => { const t = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'; document.documentElement.dataset.theme = t; store('opart.theme', t); });
+    $('#btn-fs').addEventListener('click', toggleFullscreen);
+    window.addEventListener('hashchange', () => { const mm = location.hash.match(/[#&]s=([^&]+)/); if (mm) { const s = decodeState(mm[1]); if (s) applyState(s); } });
+    window.addEventListener('resize', layoutCanvas);
+    document.addEventListener('fullscreenchange', layoutCanvas);
+    new ResizeObserver(layoutCanvas).observe(stage);
+    layoutCanvas();
+  }
+  boot();
+
+  /* expose a little API for the console / tests */
+  window.OpArtApp = { get state() { return state; }, applyState, randomize, mutate, exportPNG, Renderer, encodeState };
+})();
+
+</script>
+</body>
+</html>

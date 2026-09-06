@@ -1,0 +1,12 @@
+{
+  "name": "opart-engine",
+  "version": "1.0.0",
+  "description": "Advanced browser-based Op Art generator: layered scalar-field patterns, warps, symmetry, palettes, animation and hi-res export.",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "build": "node tools/build.js",
+    "test": "node tools/smoke.js"
+  },
+  "license": "MIT"
+}
