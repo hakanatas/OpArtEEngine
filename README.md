@@ -1,99 +1,87 @@
 # OpArt Engine
 
-Tarayıcıda çalışan, bağımlılıksız, gelişmiş bir **Op Art (optik sanat) üreteci**.
-Selim Tezel'in *Gemini Op Art Engine* sayfasındaki fikirden (slider'larla kontrol edilen
-canvas tabanlı op-art üretimi) yola çıkar; onu katmanlı bir skaler-alan render motoruna,
-bozunum/simetri sistemine, palet yönetimine, animasyona ve yüksek çözünürlüklü dışa aktarmaya genişletir.
+Tarayıcıda çalışan gelişmiş bir **optik sanat (Op Art) üreteci**. Bağımlılık yok, tek sayfa; GitHub Pages veya herhangi bir statik sunucuda çalışır.
 
-> **Canlı kullanım:** `index.html` dosyasını bir HTTP sunucusundan açın (`npm start` → http://localhost:8080)
-> veya GitHub Pages'e yayınlayın. `dist/opart-engine.html` tek dosyalık sürümdür; çift tıklayarak da açılabilir.
+An advanced browser-based **optical-art generator**. No dependencies, no build step required; works on GitHub Pages or any static host.
 
----
+**Canlı deneme / live demo:** `index.html` dosyasını bir statik sunucudan açın (`npm start` → http://localhost:8080). Tek dosyalık sürüm için `npm run build` → `dist/opart-engine.html`.
 
-## Özellikler
+## Özellikler / Features
 
-**22 desen** — Stripes, Waves (Riley), Cataract, Zigzag, Rings, Concentric squares, Diamonds, Polygons, Rays,
-Spiral, Vortex, Tunnel, Blaze, Checkerboard, Polar checker (Vasarely *Vega*), Dot grid (Vasarely), Hexagons,
-Tumbling cubes, Weave, Lissajous, Noise contours, Interference.
+| | |
+|---|---|
+| **22 desen** | Riley dalgaları, Cataract, zikzak, halkalar, iç içe kareler, çokgenler, ışınlar, sarmal, girdap, tünel, Blaze, dama, kutupsal dama (Vasarely *Vega*), nokta ızgarası (Vasarely), altıgenler, yuvarlanan küpler, dokuma, Lissajous, gürültü eşyükseltileri, girişim |
+| **İki katman** | İkinci katman ayrı desen/parametrelerle; XOR-fark, çarp, ekran, ortalama, min, max, topla karışımı ile moiré |
+| **Bozunum** | Şişirme/sıkma, burgu, dalgacık, dalga, gürültü (domain warp); yığılabilir ve animasyonlu |
+| **Simetri** | 24 dilime kadar kaleydoskop, dilim aynalama, X/Y aynalama |
+| **Renk** | 8 renge kadar palet editörü, 12 hazır palet, ayrık bant / gradyan eşleme, palet tekrarı ve kayması, gama, ters çevirme, gren, vinyet |
+| **Kenar biçimi** | Sert (çizgi kalınlığı ayarlı), yumuşak, üçgen, testere, basamaklı |
+| **Animasyon** | Katman başına kayma hızı, canlı bozunum, oynat/duraklat, 6 sn WebM/MP4 kaydı |
+| **Üretkenlik** | 16 canlı küçük resimli hazır ayar, tohumlu rastgele üretim, mutasyon, geri al/yinele, paylaşılabilir URL (`#s=…`), JSON kaydet/yükle, otomatik yerel kayıt |
+| **Dışa aktarma** | 1024–4096 px PNG, 2×2 / 3×3 süper örnekleme ile |
+| **Performans** | Web Worker havuzu (çekirdek sayısına göre), etkileşim sırasında uyarlanabilir önizleme çözünürlüğü, boşta tam çözünürlük |
+| **Arayüz** | Türkçe / İngilizce, koyu / açık tema, mobil düzen, klavye kısayolları |
 
-**İki katman + karışım** — İkinci katman ayrı desen, yoğunluk, merkez, ölçek ve faz ile eklenir;
-Difference (XOR), Multiply, Screen, Average, Min, Max, Add modlarıyla karıştırılır (moiré efektleri).
+### Klavye / Keyboard
 
-**Kenar biçimi** — Her katman için Hard (kalınlık ayarlı kare dalga), Smooth, Triangle, Sawtooth, Stepped (N bant).
+`Space` oynat-duraklat · `R` rastgele · `M` mutasyon · `I` ters çevir · `F` tam ekran · `E` / `Ctrl+S` PNG · `Ctrl+Z` / `Ctrl+Y` geri al-yinele · Sürükle: kaydır · Tekerlek: yakınlaştır · Çift tık: görünümü sıfırla · Slider'a çift tık: varsayılana dön
 
-**Bozunum (warp) yığını** — Bulge/pinch, twist, ripple, wave, noise (domain warping); hepsi birlikte
-uygulanabilir ve animasyonla canlandırılabilir.
-
-**Simetri** — 1–24 dilimli kaleydoskop, dilim aynalama, X/Y aynalama.
-
-**Renk** — 1–8 renkli palet editörü, 12 hazır palet (Riley, Vasarely, Anuszkiewicz, Neon…),
-ayrık bant / gradyan eşleme, palet tekrarı ve kayması, gama, ters çevirme, gren, vinyet.
-
-**Animasyon** — Katman başına kayma hızı, canlandırılan bozunumlar, oynat/duraklat, hız kontrolü,
-6 saniyelik WebM/MP4 kaydı (MediaRecorder).
-
-**Etkileşim** — Sürükle: kaydır, tekerlek: yakınlaştır, çift tık: sıfırla; slider'a çift tık: varsayılana dön.
-Kısayollar: `Boşluk` oynat, `R` rastgele, `M` mutasyon, `I` ters çevir, `F` tam ekran, `E`/`Ctrl+S` PNG, `Ctrl+Z/Y` geri al/yinele.
-
-**Üretkenlik** — 16 hazır ayar (canlı küçük resimlerle), tohumlu rastgele üretim, mutasyon, 100 adımlı geri al/yinele,
-otomatik kayıt (localStorage), JSON kaydet/yükle, paylaşılabilir URL (`#s=…`).
-
-**Dışa aktarma** — 1024–4096 px PNG, 2×2 veya 3×3 süper örnekleme ile kenar yumuşatma; mevcut en-boy oranı korunur.
-
-**Performans** — Render, Web Worker havuzunda (çekirdek sayısı kadar) satır bloklarına bölünerek yapılır;
-etkileşim ve animasyon sırasında çözünürlük ölçülen hıza göre otomatik düşürülür, boşta tam çözünürlükte
-yeniden çizilir. `file://` ile açıldığında ana iş parçacığına düşer.
-
-**Arayüz** — Türkçe/İngilizce, koyu/açık tema, mobil uyumlu düzen, katlanabilir bölümler.
-
----
-
-## Mimari
+## Mimari / Architecture
 
 ```
 index.html        arayüz iskeleti
-css/style.css     tema değişkenleri, düzen
-js/core.js        saf render çekirdeği (DOM yok; hem ana iş parçacığında hem worker'da çalışır)
-js/worker.js      worker giriş noktası (importScripts('core.js'))
+css/style.css     tema değişkenleri (koyu/açık), düzen
+js/core.js        saf render çekirdeği (DOM yok; ana iş parçacığı ve worker'da aynı kod)
+js/worker.js      worker giriş noktası (importScripts core.js)
+js/app.js         durum, geçmiş, arayüz üretimi, worker havuzu, dışa aktarma
 js/presets.js     hazır ayarlar ve paletler
-js/i18n.js        TR/EN metinler
-js/app.js         durum, geçmiş, worker havuzu, UI üretimi, dışa aktarma, klavye/işaretçi
-tools/build.js    her şeyi tek HTML dosyasına gömer (dist/opart-engine.html)
-tools/smoke.js    her deseni tüm özelliklerle çizip NaN/çökme kontrolü yapar
+js/i18n.js        TR/EN dizeleri
+tools/build.js    tek dosyalık dist/opart-engine.html üretir
+tools/smoke.js    tüm desen × kenar biçimi kombinasyonlarını headless test eder
 ```
 
-### Piksel hattı
+Her piksel bir **skaler alan** olarak hesaplanır:
 
-Her piksel bir skaler alan olarak hesaplanır:
+```
+piksel → normalize (kısa kenar −1..1) → yakınlaştır/döndür/kaydır
+       → simetri (kaleydoskop, aynalama)
+       → bozunumlar (şişirme, burgu, dalgacık, dalga, gürültü)
+       → katman A: desen(u,v) → faz → kenar biçimi → değer [0,1]
+       → katman B (opsiyonel) → karışım
+       → gama / ters çevir → palet (ayrık veya gradyan)
+       → vinyet, gren
+```
 
-1. **Koordinat** — kısa kenar `[-1, 1]` olacak şekilde normalize; zoom, döndürme, kaydırma.
-2. **Simetri** — kaleydoskop dilimi ve aynalama.
-3. **Bozunum** — kutupsal (bulge, twist, ripple) ve kartezyen (wave, noise) warp'lar.
-4. **Katmanlar** — her katman `(u, v, r, θ) → faz` üretir; faz, kenar biçimiyle `[0, 1]` değere dönüştürülür.
-5. **Karışım** — katman değerleri seçilen modla birleştirilir.
-6. **Renk** — gama/ters çevirme, ardından palet eşlemesi (ayrık veya gradyan), vinyet ve gren.
+Desenler faz döndürdüğü için aynı bozunum, simetri ve renk hattı hepsine uygulanır.
 
-Yeni bir desen eklemek için `js/core.js` içinde `PATTERNS` listesine bir kayıt ve `PF` nesnesine bir fonksiyon eklemek,
-`js/i18n.js` içinde adını tanımlamak yeterlidir.
+### Yeni desen ekleme
 
----
+`js/core.js` içinde iki yer:
 
-## Geliştirme
+```js
+// 1) katalog: hangi genel parametreleri kullandığı ve etiket anahtarları
+{ id: 'myPattern', uses: { freq: 'density', amp: 'amplitude' } },
+
+// 2) fonksiyon: (u, v, r, angle, layer, tAngle, seed) → faz
+PF.myPattern = (u, v, r, a, L, t) => u * L.freq + L.amp * Math.sin(v * 3 + t);
+```
+
+Sonra `js/i18n.js` içine `patterns.myPattern` adını ekleyin. Etiket anahtarları (`density`, `amplitude`, …) da aynı dosyada tanımlıdır.
+
+## Geliştirme / Development
 
 ```bash
-npm start     # yerel sunucu (http://localhost:8080)
-npm test      # headless duman testi (Node)
-npm run build # dist/opart-engine.html üret
+npm start        # http://localhost:8080 (python3 http.server)
+npm test         # headless duman testi (Node)
+npm run build    # dist/opart-engine.html
 ```
 
-Harici bağımlılık yoktur; derleme adımı isteğe bağlıdır.
+Worker'lar `file://` üzerinden açıldığında tarayıcı güvenlik kısıtı nedeniyle yüklenemez; uygulama otomatik olarak ana iş parçacığına düşer. Tam hız için bir HTTP sunucusu kullanın veya `dist/opart-engine.html` dosyasını açın (çekirdek satır içi olduğundan Blob worker'lar çalışır).
 
----
+## Esin / Inspiration
 
-## English summary
+Selim Tezel'in *Gemini Op Art Engine* sayfasındaki fikirden yola çıkılarak sıfırdan yazılmıştır. Bridget Riley, Victor Vasarely ve Richard Anuszkiewicz'in eserlerine saygıyla.
 
-OpArt Engine is a dependency-free, browser-based optical-art generator: 22 scalar-field patterns, two blendable
-layers (XOR/multiply/screen/…), stackable distortions (bulge, twist, ripple, wave, noise), kaleidoscope symmetry,
-palette editor with presets, discrete or gradient colour mapping, animation with video recording, seeded randomise
-and mutate, undo/redo, shareable URLs, JSON save/load, and 4096 px supersampled PNG export. Rendering is split
-across a Web Worker pool with adaptive preview resolution. UI in English and Turkish, dark and light themes.
+## Lisans
+
+MIT
