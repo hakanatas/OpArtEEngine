@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sayılar · 9. Sınıf Matematik 1. Tema</title>
+<style>
+/*FONTLAR*/
+html, body { margin: 0; height: 100%; background: #1d1f24; overflow: hidden; }
+body { display: flex; align-items: center; justify-content: center; font-family: Kalam, system-ui, sans-serif; }
+canvas { display: block; box-shadow: 0 10px 40px rgba(0,0,0,.45); cursor: pointer; }
+#hud { position: fixed; left: 16px; bottom: 14px; right: 16px; color: #f4f1e6; font-size: 18px; line-height: 1.4;
+  background: rgba(20,22,28,.78); padding: 8px 14px; border-radius: 10px; opacity: 0; transition: opacity .4s; pointer-events: none; }
+#hud.gorunur { opacity: 1; }
+#start { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  background: rgba(20,22,28,.72); color: #fbf9f1; cursor: pointer; text-align: center; padding: 16px; }
+#start h1 { font-size: clamp(32px, 6vw, 64px); margin: 0; }
+#start .btn { font-size: clamp(22px, 3.5vw, 34px); background: #ffe66b; color: #24242c; padding: 12px 34px; border-radius: 14px; font-weight: 700; }
+#start ul { list-style: none; padding: 0; margin: 0; font-size: clamp(16px, 2.2vw, 22px); opacity: .9; }
+#start a { color: #9fd0ff; }
+#start.gizli, body.render #start, body.render #hud { display: none; }
+body.render { background: #000; }
+body.render canvas { box-shadow: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<audio id="muzik" preload="auto"><source src="/*MUZIK*/" type='audio/mp4; codecs="mp4a.40.2"'><source src="/*MUZIK2*/" type='audio/webm; codecs="opus"'></audio>
+<div id="hud"></div>
+<div id="start">
+  <h1>Sayılar</h1>
+  <div>9. Sınıf Matematik · 1. Tema</div>
+  <div class="btn">▶ Başlat</div>
+  <ul>
+    <li><b>Boşluk</b> durdur / devam · <b>← →</b> önceki / sonraki sahne</li>
+    <li><b>D</b> her sahne sonunda otomatik dur · <b>F</b> tam ekran · <b>M</b> ses · <b>Home</b> başa dön</li>
+    <li><a href="?kare=1" onclick="event.stopPropagation()">kare görünüm</a> · <a href="?" onclick="event.stopPropagation()">16:9 görünüm</a></li>
+  </ul>
+</div>
+<script>
+/*JS*/
+</script>
+</body>
+</html>
