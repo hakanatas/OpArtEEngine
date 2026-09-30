@@ -1,6 +1,6 @@
 # Öğretmen notu · 9. Sınıf Matematik, 1. Tema: Sayılar
 
-Animasyon yaklaşık **2 dakika** sürer. `index.html` dosyasını tarayıcıda açın; internet gerekmez.
+Animasyon yaklaşık **2,5 dakika** sürer. `index.html` dosyasını tarayıcıda açın; internet gerekmez.
 
 | Tuş | İş |
 |---|---|
@@ -12,6 +12,8 @@ Animasyon yaklaşık **2 dakika** sürer. `index.html` dosyasını tarayıcıda 
 | **Home** | başa dön |
 
 Soru-cevaplı işlemek için derse **D**'ye basarak başlayın. Animasyon her sahnenin sonunda durur, sorunuzu sorarsınız, **boşluk** ile devam edersiniz.
+
+Her konunun sonunda 7 saniyelik bir **ANA FİKİR** kartı gelir: o öğrenme çıktısından akılda kalması gereken 3 madde (0:38, 1:10, 1:41, 2:07). **D** açıksa animasyon kartı gösterdikten sonra durur. Öğrencilere maddeleri defterlerine yazdırmak için iyi bir an.
 
 ---
 
@@ -28,28 +30,28 @@ Uzun yazılan sayılar bilimsel gösterime "katlanıyor". Sonra 8^(1/3) = ∛8 =
 - *8^(2/3) kaçtır? Küp resmine bakarak açıklayın.* (∛8 = 2, sonra 2² = 4.)
 - *√3 ≈ 1,7 ile 1,73 aynı panel sayısını verdi. Hangi durumda fark ederdi?* (Örneğin tel metre hesabıyla alınsaydı.)
 
-## 2 · Aralıklar ve küme işlemleri · MAT.9.1.2 (0:38–1:02)
+## 2 · Aralıklar ve küme işlemleri · MAT.9.1.2 (0:46–1:10)
 Lunapark kuralları sayı doğrusunda. Dolu ve boş uç noktalar, A ∪ B, A ∩ B, A \ B, A′ ve |x − 3| < 1.
 
 - *Boyu tam 120 cm olan çocuk binebilir mi? 8 yaşındaki?* (Evet; hayır.)
 - *B \ A nedir?* (Cevap: (14, 16].)
 - *5 < x < 11 aralığını mutlak değerle yazın.* (Cevap: |x − 8| < 3.)
 
-## 3 · Sayı kümeleri ve özellikleri · MAT.9.1.3 (1:02–1:26)
+## 3 · Sayı kümeleri ve özellikleri · MAT.9.1.3 (1:17–1:41)
 ℕ ⊆ ℤ ⊆ ℚ ⊆ ℝ. Her küme yeni bir ihtiyaçtan doğuyor. Sonra YBC 7289 tabletinde √2, iki rasyonel arasındaki rasyonel (doğrudan ispat) ve √2 · √2 = 2 (aksine örnek) geliyor.
 
 - *−50 hangi kümelerin elemanı? 0,25? √2?*
 - *İki irrasyonelin toplamı hep irrasyonel midir?* (Hayır, örneğin √2 + (−√2) = 0.)
 - *İki rasyonel arasında hep bir irrasyonel var mıdır?* (Evet. Bu sorunun ispatı daha zordur, meraklı öğrencilere araştırma olarak verilebilir.)
 
-## 4 · İşlem özelliklerinden cebire · MAT.9.1.4 (1:26–1:46)
+## 4 · İşlem özelliklerinden cebire · MAT.9.1.4 (1:48–2:07)
 (a + b)²'nin kare modeli, a² − b²'nin "kes-taşı" modeli, a · b = 0 ⇔ a = 0 ∨ b = 0 ve "her / bazı" farkı.
 
 - *(a − b)²'yi aynı kare modelle nasıl gösterirsiniz?*
 - *(x − 3)(x + 2) = 0 ise x kaçtır?* (Cevap: 3 veya −2.)
 - *"Her asal sayı tektir" doğru mu? "Bazı asal sayılar tektir"?* (İlki yanlış, çünkü 2 asal ve çift. İkincisi doğru.)
 
-## 5 · Final (1:46–1:57)
+## 5 · Final (2:14–2:28)
 Dört öğrenme çıktısı dört simgede toplanıyor. Temaya giriş olarak *"Bu dört simgeden hangisini en merak ettiniz?"* diye sorabilirsiniz.
 
 ---

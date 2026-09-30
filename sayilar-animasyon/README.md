@@ -1,6 +1,6 @@
 # Sayılar · 9. Sınıf Matematik 1. Tema animasyonu
 
-Türkiye Yüzyılı Maarif Modeli 9. sınıf matematiğinin 1. teması **"Sayılar" (MAT.9.1)** için derse giriş animasyonu. Süresi yaklaşık 2 dakika. Dört öğrenme çıktısının her biri bir sahne.
+Türkiye Yüzyılı Maarif Modeli 9. sınıf matematiğinin 1. teması **"Sayılar" (MAT.9.1)** için derse giriş animasyonu. Süresi yaklaşık 2,5 dakika. Dört öğrenme çıktısının her biri bir sahne; her sahneden sonra 3 maddelik bir **ANA FİKİR** kartı gelir.
 
 | Dosya | Ne |
 |---|---|
@@ -8,11 +8,12 @@ Türkiye Yüzyılı Maarif Modeli 9. sınıf matematiğinin 1. teması **"Sayıl
 | `sayilar-16x9-1920x1080.mp4` | Sınıfta yansıtmak için |
 | `sayilar-kare-1080x1080.mp4` | Paylaşmak için |
 | `ogretmen-notu.md` | Her sahnede sorulabilecek sorular ve cevapları |
-| `muzik.m4a` | Animasyon için bestelenmiş müzik (100 BPM, 48 ölçü) |
+| `muzik.m4a` | Animasyon için bestelenmiş müzik (100 BPM, 61 ölçü) |
 
 ## Nasıl yapıldı
 
 - Her kare JavaScript ile Canvas 2D üzerine sıfırdan çiziliyor (`src/cizim.js`). Hazır görsel, video ya da animasyon kütüphanesi yok. Tek dış varlık el yazısı font Kalam (SIL OFL), o da dosyaya gömülü.
+- Her bölümün kendi zemini var: kara tahta, gece/uzay, kraft kâğıt, mavi teknik çizim, kareli defter, renkli kartlar. Kalem renkleri zemine göre değişiyor. Sahneler arasında dört farklı geçiş kullanılıyor.
 - Çizgiler saniyede 8 kez hafifçe "kaynıyor". Böylece kareli defter üstünde tükenmez kalem, fosforlu kalem ve karakalemle o an çiziliyormuş gibi görünüyor.
 - Görüntü zamanın saf fonksiyonu: aynı T her zaman aynı kareyi verir. Bu sayede tarayıcıdaki oynatıcı ile video çıktısı birebir aynı.
 - **Müzik:** klasörde `muzik.m4a` yoktu. Bu yüzden müzik de sıfırdan, animasyonun zaman tablosuna göre sentezlendi (`tools/muzik.js`). Hazır ses örneği yok. Sahne sınırları, müzikteki bölüm sınırlarıyla (crash + riser) aynı yere düşüyor. Hepsi `src/zaman.js`'teki tek tablodan geliyor. `tools/analiz.js` müziğin tempo ve bölüm analizini WAV'dan bağımsız olarak çıkarıp tabloyla karşılaştırıyor (tahmin: 100 BPM).

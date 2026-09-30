@@ -220,6 +220,22 @@ groove('aralik', { dens: 0.6, hat16: true, oct: 0, riserEnd: true });
 groove('kumeler', { dens: 0.5, breakdown: true, openOff: true, riserEnd: true });
 groove('cebir', { dens: 0.65, counter: true, extraKick: true, hat16: true, riserEnd: true });
 
+// ANA FİKİR kartları: sakin bölüm, her madde yazılırken çan
+['ozet1', 'ozet2', 'ozet3', 'ozet4'].forEach((ad, n) => {
+  const o = sec(ad);
+  crash(o.bas * BAR, 0.5);
+  for (let bar = o.bas; bar < o.bit; bar++) {
+    const t0 = bar * BAR, ch = PROG[(bar + n) % 4];
+    bass(t0, ch.root, BAR * 0.97, 0.7);
+    pad(t0, ch.tri, BAR, 1.1, 0.035);
+    for (let s8 = 0; s8 < 8; s8++) hat(t0 + s8 * BEAT / 2, 0.45);
+    kick(t0, 0.5);
+    ch.tri.concat([ch.tri[0] + 12]).forEach((m, k) => pluck(t0 + k * BEAT, m + 12, BEAT, 0.45, -0.3 + k * 0.2));
+  }
+  [0.9, 2.7, 4.5].forEach((dt, j) => bell(o.bas * BAR + dt, [77, 81, 84][j], 0.8));
+  riser(o.bit * BAR - BAR / 2, o.bit * BAR, 0.6);
+});
+
 // 5) FİNAL: son akor ilerlemesi + çanlar, son ölçüde tutulan F
 {
   const f = sec('final');

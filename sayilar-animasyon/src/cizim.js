@@ -22,6 +22,32 @@
     turuncu: 'rgba(255,155,40,0.45)',
     mor: 'rgba(160,110,255,0.38)',
   };
+  // ---------- Temalar: zemin + kalem paleti ----------
+  const KOYU = { hlMode: 'source-over', hlA: 0.62 };
+  C.TEMALAR = {
+    defter: { INK: '#1b3a8c', BLK: '#24242c', RED: '#d42f3c', GRN: '#1f8a4c', PUR: '#6b3db3', GRY: '#5f6168', PAPER: '#fbf9f1',
+      ORG: '#c05a00', BRN: '#8a5a2b', BRN2: '#6a3a14', GOLD: '#9a7200', CYAN: '#1a7f95', WAVE: 'rgba(40,120,200,0.55)',
+      HATCHG: 'rgba(31,138,76,0.45)', HATCH: 'rgba(90,90,100,0.55)', hlMode: 'multiply', hlA: 1 },
+    kraft: { INK: '#1c2d6b', BLK: '#2a1f16', RED: '#b01e2b', GRN: '#16613a', PUR: '#56298f', GRY: '#5c4730', PAPER: '#e3c99d',
+      ORG: '#9c4200', BRN: '#5b3412', BRN2: '#4a2a0e', GOLD: '#735300', CYAN: '#0f6273', WAVE: 'rgba(30,80,140,0.55)',
+      HATCHG: 'rgba(22,97,58,0.5)', HATCH: 'rgba(60,40,20,0.5)', hlMode: 'multiply', hlA: 1 },
+    kara: Object.assign({ INK: '#f6f3ea', BLK: '#f6f3ea', RED: '#ff8f8f', GRN: '#9be8a3', PUR: '#d2b6ff', GRY: '#b6c1b9', PAPER: '#26342e',
+      ORG: '#ffb46e', BRN: '#e9c79c', BRN2: '#e9c79c', GOLD: '#ffe27a', CYAN: '#90e6f4', WAVE: 'rgba(200,230,255,0.5)',
+      HATCHG: 'rgba(160,240,170,0.45)', HATCH: 'rgba(240,240,230,0.35)' }, KOYU),
+    gece: Object.assign({ INK: '#ffffff', BLK: '#f3f1ff', RED: '#ff8aa0', GRN: '#8ff0b0', PUR: '#c7b3ff', GRY: '#aab3d8', PAPER: '#121a3d',
+      ORG: '#ffb86b', BRN: '#f0cfa0', BRN2: '#f0cfa0', GOLD: '#ffe070', CYAN: '#86e8ff', WAVE: 'rgba(180,210,255,0.5)',
+      HATCHG: 'rgba(150,240,190,0.45)', HATCH: 'rgba(220,220,255,0.35)' }, KOYU),
+    plan: Object.assign({ INK: '#ffffff', BLK: '#f4f8ff', RED: '#ffb3a3', GRN: '#b9f7c6', PUR: '#e4d2ff', GRY: '#c3d6f5', PAPER: '#1e5299',
+      ORG: '#ffc98a', BRN: '#ffe0b8', BRN2: '#ffe0b8', GOLD: '#ffe68a', CYAN: '#a8f0ff', WAVE: 'rgba(255,255,255,0.45)',
+      HATCHG: 'rgba(200,255,215,0.45)', HATCH: 'rgba(255,255,255,0.35)' }, KOYU),
+  };
+  C.tema = function (ad) {
+    const [k, renk] = ad.split(':');
+    Object.assign(C, C.TEMALAR[k] || C.TEMALAR.defter);
+    if (renk) C.PAPER = renk; // "renk:#ffd84d" -> düz renkli zemin, koyu kalemler
+    C.KOYU = C.hlMode !== 'multiply';
+  };
+  C.tema('defter');
   C.FONT = "Kalam, 'Cambria Math', 'Segoe UI Symbol', 'DejaVu Sans', 'Noto Sans Math', sans-serif";
 
   const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
@@ -124,7 +150,8 @@
     if (p <= 0) return;
     const ctx = C.ctx;
     ctx.save();
-    ctx.globalCompositeOperation = 'multiply';
+    ctx.globalCompositeOperation = C.hlMode;
+    ctx.globalAlpha *= C.hlA;
     ctx.fillStyle = col;
     const ww = w * p;
     ctx.beginPath();
@@ -150,7 +177,7 @@
     const cx = bx + bw / 2, cy = by + bh / 2;
     const n = Math.ceil(diag / gap);
     const nn = Math.ceil(n * p);
-    ctx.strokeStyle = o.c || 'rgba(90,90,100,0.55)';
+    ctx.strokeStyle = o.c || C.HATCH;
     ctx.lineWidth = o.w || 2.2;
     ctx.lineCap = 'round';
     const ca = Math.cos(ang), sa = Math.sin(ang);
@@ -167,7 +194,8 @@
   C.fillSoft = function (pathFn, col) {
     const ctx = C.ctx;
     ctx.save();
-    ctx.globalCompositeOperation = 'multiply';
+    ctx.globalCompositeOperation = C.hlMode;
+    ctx.globalAlpha *= C.hlA;
     ctx.fillStyle = col; ctx.beginPath(); pathFn(ctx); ctx.fill();
     ctx.restore();
   };
@@ -191,10 +219,13 @@
   C.parse = parse;
   const SUP = 0.62, IDX = 0.5;
   function setFont(size, bold) { C.ctx.font = `${bold ? 700 : 400} ${size}px ${C.FONT}`; }
+  C.supMin = 0; // üs/kök indeksi için en küçük boyut (48 px kuralı)
+  const supS = size => Math.max(size * SUP, C.supMin);
+  const idxS = size => Math.max(size * IDX, C.supMin);
   function tokW(t, size, bold) {
     const ctx = C.ctx;
     if (t.k === 't') { setFont(size, bold); return ctx.measureText(t.s).width; }
-    if (t.k === 'sup') { setFont(size * SUP, bold); return ctx.measureText(t.s).width + size * 0.04; }
+    if (t.k === 'sup') { setFont(supS(size), bold); return ctx.measureText(t.s).width + size * 0.04; }
     setFont(size, bold); return ctx.measureText(t.s).width + size * 0.62;
   }
   C.measure = function (s, size, bold) { return parse(s).reduce((a, t) => a + tokW(t, size, bold), 0); };
@@ -206,13 +237,13 @@
     for (const t of toks) {
       const w = tokW(t, size, bold);
       if (t.k === 't') { setFont(size, bold); ctx.fillText(t.s, x, y); noteFont(size * scale, t.s); }
-      else if (t.k === 'sup') { setFont(size * SUP, bold); ctx.fillText(t.s, x + size * 0.02, y - size * 0.42); noteFont(size * SUP * scale, '^' + t.s); }
+      else if (t.k === 'sup') { setFont(supS(size), bold); ctx.fillText(t.s, x + size * 0.02, y - size * 0.42); noteFont(supS(size) * scale, '^' + t.s); }
       else {
         const top = y - size * 0.86, cw = w - size * 0.62;
         const lw = Math.max(3, size * 0.055);
         C.pen([[x + size * 0.02, y - size * 0.30], [x + size * 0.13, y - size * 0.37], [x + size * 0.27, y + size * 0.08],
           [x + size * 0.47, top], [x + size * 0.56 + cw + size * 0.04, top]], { c: col, w: lw, j: 0.8 });
-        if (t.idx) { setFont(size * IDX, bold); ctx.fillText(t.idx, x - size * 0.02, y - size * 0.44); noteFont(size * IDX * scale, 'kök ' + t.idx); }
+        if (t.idx) { setFont(idxS(size), bold); ctx.fillText(t.idx, x - size * 0.06, y - size * 0.44); noteFont(idxS(size) * scale, 'kök ' + t.idx); }
         setFont(size, bold); ctx.fillText(t.s, x + size * 0.56, y); noteFont(size * scale, t.s);
       }
       x += w;
@@ -310,6 +341,26 @@
     fn(); ctx.restore();
   };
   C.alpha = function (a, fn) { if (a <= 0) return; const ctx = C.ctx; ctx.save(); ctx.globalAlpha *= a; fn(); ctx.restore(); };
+
+  // Konfeti patlaması: t = patlamadan beri geçen süre (deterministik)
+  C.konfeti = function (x, y, t, o = {}) {
+    if (t < 0 || t > 2.2) return;
+    const ctx = C.ctx, n = o.n || 46;
+    const cols = o.cols || ['#ffd84d', '#ff6fa8', '#5cc8ff', '#6fe08a', '#b58cff', '#ff9f43'];
+    ctx.save();
+    ctx.globalAlpha *= 1 - C.seg(t, 1.4, 2.2);
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI / 2 + (C.rs(i * 3.3 + x) - 0.5) * (o.yay || 2.6);
+      const v = 500 + C.rs(i * 7.1 + y) * 700;
+      const px = x + Math.cos(a) * v * t, py = y + Math.sin(a) * v * t + 900 * t * t;
+      ctx.save(); ctx.translate(px, py); ctx.rotate(t * (4 + C.rs(i) * 8) + i);
+      ctx.fillStyle = cols[i % cols.length];
+      if (i % 3 === 0) { ctx.beginPath(); ctx.arc(0, 0, 7, 0, 7); ctx.fill(); }
+      else ctx.fillRect(-9, -4, 18, 8 * Math.abs(Math.cos(t * 6 + i)) + 2);
+      ctx.restore();
+    }
+    ctx.restore();
+  };
 
   // Zaman bloğu: [a,b] aralığında çizer, kenarlarda yumuşak geçiş
   C.blok = function (t, a, b, fn, fo = 0.25, fi = 0) {

@@ -7,7 +7,7 @@
   // ---------- ortak ----------
   function baslik(kod, ad, t, L) {
     C.not(34, 26, 262, 92, '#ffe66b', -0.035, seg(t, 0.05, 0.5), (x, y) => {
-      txt(kod, x + 131, y + 48, { s: 50, b: true, c: C.BLK });
+      txt(kod, x + 131, y + 48, { s: 50, b: true, c: '#24242c' });
     });
     const maxW = L.W - 360;
     txt(ad, 322, 72, { s: 54, a: 'left', c: C.BLK, p: seg(t, 0.2, 0.9), maxW, b: true });
@@ -84,6 +84,7 @@
           line(sx + Math.cos(a) * r0, sy + Math.sin(a) * r0, sx + Math.cos(a) * r1, sy + Math.sin(a) * r1, { c: C.RED, w: 5 });
         }
       }
+      C.konfeti(sx, sy, lt - cross);
       txt('Usain Bolt · 100 m · 2009', wide ? 90 : cx, wide ? 110 : 70, { s: 52, a: wide ? 'left' : 'center', c: C.GRY, p: seg(lt, 0.1, 0.8) });
       const q = 'Neden 10 sn değil de 9,58?';
       para(q, cx, wide ? 1025 : 1015, { s: 70, b: true, c: C.INK, p: seg(lt, 2.6, 3.4), maxW: W - 120 });
@@ -168,9 +169,9 @@
       pen(mid, { c: C.RED, w: 4, p: seg(p, 0.5, 1) });
     } else if (tur === 'uranus') {
       C.fillSoft(ctx => ctx.arc(x, y, 62 * s, 0, 7), 'rgba(70,200,220,0.35)');
-      circle(x, y, 62 * s, { c: '#1a7f95', w: 5, p });
+      circle(x, y, 62 * s, { c: C.CYAN, w: 5, p });
       C.ctx.save(); C.ctx.translate(x, y); C.ctx.rotate(1.35);
-      ellipse(0, 0, 110 * s, 22 * s, { c: '#1a7f95', w: 4, p: seg(p, 0.3, 1) });
+      ellipse(0, 0, 110 * s, 22 * s, { c: C.CYAN, w: 4, p: seg(p, 0.3, 1) });
       C.ctx.restore();
       circle(x - 150 * s, y + 70 * s, 12 * s, { c: C.INK, w: 4, p });
       arrow(x - 132 * s, y + 60 * s, x - 70 * s, y + 30 * s, { c: C.GRY, w: 3, dash: [6, 8], p: seg(p, 0.5, 1) });
@@ -184,6 +185,25 @@
     // --- A: 10'un kuvvetleri ---
     blok(t, 0, 10.8, lt => {
       const x0 = wide ? 200 : 110, x1 = W - (wide ? 200 : 110), ay = 245;
+      // yakınlaşma hissi: işaretçi kayarken yıldızlar merkezden dışa akar
+      {
+        const kk = clamp(Math.floor((lt - 1.2) / 2.4), 0, 3), lkk = lt - 1.2 - kk * 2.4;
+        const eP = kk > 0 ? DURAKLAR[kk - 1].e : -16;
+        const ee = lt < 1.2 ? -16 + lt * 0.5 : lerp(eP, DURAKLAR[kk].e, ease(seg(lkk, 0, 0.5)));
+        const hiz = lt < 1.2 ? 0.2 : Math.sin(Math.PI * seg(lkk, 0, 0.5)) * Math.min(1, Math.abs(DURAKLAR[kk].e - eP) / 12);
+        const ctx = C.ctx;
+        ctx.save(); ctx.lineCap = 'round';
+        for (let i = 0; i < 110; i++) {
+          const a = C.rs(i * 2.9) * Math.PI * 2;
+          const ph = (C.rs(i * 5.3) + ee * 0.045 * (0.6 + C.rs(i) * 0.8)) % 1;
+          const f = ((ph % 1) + 1) % 1, r = f * f * W * 0.75 + 30;
+          const len = 3 + hiz * 90 * f;
+          const x = W / 2 + Math.cos(a) * r, y = H / 2 + Math.sin(a) * r * 0.75;
+          ctx.strokeStyle = `rgba(255,255,255,${0.2 + 0.6 * f})`; ctx.lineWidth = 1 + 2.5 * f;
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len * 0.75); ctx.stroke();
+        }
+        ctx.restore();
+      }
       const X = C.dogru({ x0, x1, y: ay, min: -16, max: 29, step: 1, p: seg(lt, 0, 1.0),
         lab: v => (v % (wide ? 5 : 10) === 0 ? String(v).replace('-', '−') : null), ls: 48 });
       txt("10'un kuvvetleri: üs (n)", wide ? x0 - 40 : x0 - 40, 175 + (wide ? 0 : 0), { s: 48, a: 'left', c: C.GRY, p: seg(lt, 0.3, 1.0) });
@@ -285,7 +305,7 @@
       const fmaxW = wide ? W - 820 : W - 90;
       // arazi
       const lp = seg(lt, 0, 1.0);
-      C.hatch(ctx => ctx.rect(x0, y0, S, S), x0, y0, S, S, { p: lp, c: 'rgba(31,138,76,0.45)', gap: 18 });
+      C.hatch(ctx => ctx.rect(x0, y0, S, S), x0, y0, S, S, { p: lp, c: C.HATCHG, gap: 18 });
       rect(x0, y0, S, S, { c: C.GRN, w: 5, p: lp });
       txt('1200 m²', x0 + S / 2, y0 + S / 2, { s: 72, b: true, c: C.GRN, p: seg(lt, 0.4, 1.0) });
       txt("Ahmet Bey'in kare arazisi", wide ? x0 + S / 2 : cx, wide ? y0 + S + 70 : y0 - 50, { s: 50, c: C.GRY, p: seg(lt, 0.3, 1.0), maxW: wide ? S + 100 : W - 100 });
@@ -304,15 +324,15 @@
         const per = 4 * S, n = 28;
         const at = d => { d = d % per; if (d < S) return [x0 + d, y0]; if (d < 2 * S) return [x0 + S, y0 + d - S]; if (d < 3 * S) return [x0 + S - (d - 2 * S), y0 + S]; return [x0, y0 + S - (d - 3 * S)]; };
         const rail = []; for (let d = 0; d <= per * pp; d += 20) rail.push(at(d));
-        if (rail.length > 1) { pen(rail, { c: '#8a5a2b', w: 7, j: 1 }); }
+        if (rail.length > 1) { pen(rail, { c: C.BRN, w: 7, j: 1 }); }
         for (let i = 0; i < n; i++) {
           if (i / n > pp) break;
           const [px, py] = at(i * per / n);
-          line(px, py - 16, px, py + 16, { c: '#8a5a2b', w: 6, j: 0.6 });
-          line(px - 16, py, px + 16, py, { c: '#8a5a2b', w: 6, j: 0.6 });
+          line(px, py - 16, px, py + 16, { c: C.BRN, w: 6, j: 0.6 });
+          line(px - 16, py, px + 16, py, { c: C.BRN, w: 6, j: 0.6 });
         }
         const cnt = Math.min(n, Math.floor(pp * n) + (pp > 0 ? 1 : 0));
-        if (lt < 9.0) txt(cnt + ' panel', x0 + S / 2, y0 + S / 2 + 80, { s: 52, b: true, c: '#8a5a2b', p: seg(lt, 4.8, 5.1) });
+        if (lt < 9.0) txt(cnt + ' panel', x0 + S / 2, y0 + S / 2 + 80, { s: 52, b: true, c: C.BRN, p: seg(lt, 4.8, 5.1) });
       }
       // formül satırı (tek seferde bir formül)
       const steps = [
@@ -364,10 +384,10 @@
       const sx = wide ? 120 : 40, sw = wide ? 1060 : W - 80, sy = 160, sh = 250;
       // tabela
       C.fillSoft(ctx => ctx.rect(sx, sy, sw, sh), 'rgba(255,200,120,0.25)');
-      rect(sx, sy, sw, sh, { c: '#8a5a2b', w: 6, p: seg(lt, 0, 0.6) });
-      line(sx + 60, sy + sh, sx + 60, sy + sh + 40, { c: '#8a5a2b', w: 6, p: seg(lt, 0.3, 0.6) });
-      line(sx + sw - 60, sy + sh, sx + sw - 60, sy + sh + 40, { c: '#8a5a2b', w: 6, p: seg(lt, 0.3, 0.6) });
-      txt('LUNAPARK · DEV DÖNME DOLAP', sx + sw / 2, sy + 50, { s: 52, b: true, c: '#8a5a2b', p: seg(lt, 0.2, 0.7), maxW: sw - 40 });
+      rect(sx, sy, sw, sh, { c: C.BRN, w: 6, p: seg(lt, 0, 0.6) });
+      line(sx + 60, sy + sh, sx + 60, sy + sh + 40, { c: C.BRN, w: 6, p: seg(lt, 0.3, 0.6) });
+      line(sx + sw - 60, sy + sh, sx + sw - 60, sy + sh + 40, { c: C.BRN, w: 6, p: seg(lt, 0.3, 0.6) });
+      txt('LUNAPARK · DEV DÖNME DOLAP', sx + sw / 2, sy + 50, { s: 52, b: true, c: C.BRN, p: seg(lt, 0.2, 0.7), maxW: sw - 40 });
       const r1y = sy + 125, r2y = sy + 200;
       if (lt >= 1.8) hl(sx + 30, r1y - 32, C.measure('• Boy en az 120 cm', 52) + 20, 64, C.HL.pembe, seg(lt, 1.8, 2.2));
       if (lt >= 4.2) hl(sx + 30, r2y - 32, C.measure("• Yaş 8'den büyük, 60'tan küçük", 52) + 20, 64, C.HL.mavi, seg(lt, 4.2, 4.6));
@@ -432,10 +452,10 @@
       const nA = 'Resim kursu: A = [10, 14]', nB = 'Bale kursu: B = [12, 16]';
       if (wide) {
         txt(nA, 120, 205, { s: 56, a: 'left', c: C.RED, b: true, p: seg(lt, 0.1, 0.6) });
-        txt(nB, W - 120, 205, { s: 56, a: 'right', c: '#a07800', b: true, p: seg(lt, 0.6, 1.1) });
+        txt(nB, W - 120, 205, { s: 56, a: 'right', c: C.GOLD, b: true, p: seg(lt, 0.6, 1.1) });
       } else {
         txt(nA, cx, 190, { s: 54, c: C.RED, b: true, p: seg(lt, 0.1, 0.6) });
-        txt(nB, cx, 260, { s: 54, c: '#a07800', b: true, p: seg(lt, 0.6, 1.1) });
+        txt(nB, cx, 260, { s: 54, c: C.GOLD, b: true, p: seg(lt, 0.6, 1.1) });
       }
       const X = C.dogru({ x0, x1, y: ay, min: 8, max: 18, step: 1, p: seg(lt, 0, 0.6), lab: v => (v % 2 === 0 ? String(v) : null) });
       txt('saat', x1 + 10, ay - 55, { s: 48, a: 'right', c: C.GRY, p: seg(lt, 0.3, 0.6) });
@@ -446,9 +466,9 @@
       C.nokta(X(10), yA, true, seg(lt, 0.3, 0.5), C.RED); C.nokta(X(14), yA, true, seg(lt, 0.8, 1.0), C.RED);
       txt('A', X(10) - 45, yA, { s: 52, b: true, c: C.RED, p: seg(lt, 0.3, 0.6) });
       C.hl(X(12), yB - 16, (X(16) - X(12)) * seg(lt, 0.9, 1.5), 32, C.HL.sari);
-      line(X(12), yB, X(12) + (X(16) - X(12)) * seg(lt, 0.9, 1.5), yB, { c: '#a07800', w: 7 });
-      C.nokta(X(12), yB, true, seg(lt, 0.9, 1.1), '#a07800'); C.nokta(X(16), yB, true, seg(lt, 1.4, 1.6), '#a07800');
-      txt('B', X(16) + 45, yB, { s: 52, b: true, c: '#a07800', p: seg(lt, 0.9, 1.2) });
+      line(X(12), yB, X(12) + (X(16) - X(12)) * seg(lt, 0.9, 1.5), yB, { c: C.GOLD, w: 7 });
+      C.nokta(X(12), yB, true, seg(lt, 0.9, 1.1), C.GOLD); C.nokta(X(16), yB, true, seg(lt, 1.4, 1.6), C.GOLD);
+      txt('B', X(16) + 45, yB, { s: 52, b: true, c: C.GOLD, p: seg(lt, 0.9, 1.2) });
       // işlem çipleri
       const ops = [
         { ad: 'birleşim', f: 'A ∪ B = [10, 16]', seg: [[10, 16, true, true]] },
@@ -484,7 +504,7 @@
       // deniz
       for (let i = 0; i < 3; i++) {
         const pts = []; for (let x = bx0; x <= bx1; x += 30) pts.push([x, deck + 70 + i * 26 + Math.sin(x * 0.03 + i + t * 1.5) * 6]);
-        pen(pts, { c: 'rgba(40,120,200,0.55)', w: 3, p: bp });
+        pen(pts, { c: C.WAVE, w: 3, p: bp });
       }
       // tabliye
       const dpts = []; for (let x = bx0; x <= bx1; x += 30) { const u = (x - bx0) / (bx1 - bx0); dpts.push([x, deck + flex * Math.sin(u * Math.PI)]); }
@@ -508,8 +528,8 @@
       const x0 = wide ? 360 : 110, x1 = W - (wide ? 360 : 110);
       const X = C.dogru({ x0, x1, y: ny, min: 0, max: 6, step: 1, p: seg(lt, 1.6, 2.3) });
       if (lt >= 2.3) {
-        C.bant(X, ny, 2, 4, C.HL.turuncu, seg(lt, 2.4, 2.9), { c: '#c05a00' });
-        C.nokta(X(2), ny, false, seg(lt, 2.4, 2.6), '#c05a00'); C.nokta(X(4), ny, false, seg(lt, 2.7, 2.9), '#c05a00');
+        C.bant(X, ny, 2, 4, C.HL.turuncu, seg(lt, 2.4, 2.9), { c: C.ORG });
+        C.nokta(X(2), ny, false, seg(lt, 2.4, 2.6), C.ORG); C.nokta(X(4), ny, false, seg(lt, 2.7, 2.9), C.ORG);
       }
       if (lt >= 4.2) {
         pen([[X(3), ny - 18], [X(3) - 12, ny - 42], [X(3) + 12, ny - 42], [X(3), ny - 18]], { c: C.RED, w: 5, p: seg(lt, 4.2, 4.4) });
@@ -520,7 +540,7 @@
         txt('1', (X(3) + X(4)) / 2, ny - 100, { s: 48, b: true, c: C.RED, p: seg(lt, 4.8, 5.1) });
       }
       const fy = wide ? 975 : 1000;
-      blok(lt, 2.4, 4.2, st => txt('2 < x < 4', cx, fy, { s: 88, b: true, c: '#c05a00', p: seg(st, 0, 0.4) }), 0.15);
+      blok(lt, 2.4, 4.2, st => txt('2 < x < 4', cx, fy, { s: 88, b: true, c: C.ORG, p: seg(st, 0, 0.4) }), 0.15);
       blok(lt, 4.2, 5.4, st => txt('merkez = (2 + 4) / 2 = 3,  tolerans = 1', cx, fy, { s: 72, b: true, c: C.RED, p: seg(st, 0, 0.5), maxW: W - 80 }), 0.15);
       blok(lt, 5.4, Infinity, st => {
         const f = '2 < x < 4  ⇔  |x − 3| < 1';
@@ -568,10 +588,10 @@
       const zp = seg(lt, 2.4, 3.1);
       if (zp > 0) {
         C.fillSoft(ctx => ctx.ellipse(zc[0], zc[1], zrx, zry, 0, 0, 7), `rgba(255,155,40,${0.14 * zp})`);
-        ellipse(zc[0], zc[1], zrx, zry, { c: '#c05a00', w: 5, p: zp });
-        txt('ℤ', zc[0] - zrx * 0.55, zc[1] - zry * 0.62, { s: 72, b: true, c: '#c05a00', p: seg(lt, 2.8, 3.1) });
+        ellipse(zc[0], zc[1], zrx, zry, { c: C.ORG, w: 5, p: zp });
+        txt('ℤ', zc[0] - zrx * 0.55, zc[1] - zry * 0.62, { s: 72, b: true, c: C.ORG, p: seg(lt, 2.8, 3.1) });
         [['−1', -0.72, 0.1], ['−2', 0.66, -0.34], ['−50', 0.62, 0.52]].forEach(([s, u, v], i) =>
-          txt(s, zc[0] + u * zrx, zc[1] + v * zry, { s: 56, b: true, c: '#c05a00', p: seg(lt, 3.0 + i * 0.3, 3.4 + i * 0.3) }));
+          txt(s, zc[0] + u * zrx, zc[1] + v * zry, { s: 56, b: true, c: C.ORG, p: seg(lt, 3.0 + i * 0.3, 3.4 + i * 0.3) }));
       }
       // ℕ
       const nc = M(0.40, 0.58), nrx = 0.15 * bw, nry = 0.2 * bh;
@@ -594,7 +614,7 @@
         const ix = wide ? dx : cx - 250, iy = wide ? dy - 140 : dy;
         const tx = wide ? dx : cx + 130, ty = wide ? dy + 110 : dy;
         if (i === 0) { for (let k = 0; k < 5; k++) line(ix - 60 + k * 26, iy - 50, ix - 60 + k * 26 + (k === 4 ? 0 : 0), iy + 50, { c: C.RED, w: 6, p: seg(st, 0.1 + k * 0.1, 0.25 + k * 0.1) }); line(ix - 75, iy + 30, ix + 60, iy - 30, { c: C.RED, w: 6, p: seg(st, 0.7, 0.9) }); }
-        if (i === 1) { rect(ix - 80, iy - 70, 160, 140, { c: '#c05a00', w: 4, p: seg(st, 0, 0.4) }); txt('borç', ix, iy - 25, { s: 48, c: '#c05a00', p: seg(st, 0.2, 0.5) }); txt('−50 TL', ix, iy + 30, { s: 50, b: true, c: '#c05a00', p: seg(st, 0.3, 0.7) }); }
+        if (i === 1) { rect(ix - 80, iy - 70, 160, 140, { c: C.ORG, w: 4, p: seg(st, 0, 0.4) }); txt('borç', ix, iy - 25, { s: 48, c: C.ORG, p: seg(st, 0.2, 0.5) }); txt('−50 TL', ix, iy + 30, { s: 50, b: true, c: C.ORG, p: seg(st, 0.3, 0.7) }); }
         if (i === 2) {
           circle(ix, iy, 75, { c: C.INK, w: 5, p: seg(st, 0, 0.4) });
           line(ix - 75, iy, ix + 75, iy, { c: C.INK, w: 4, p: seg(st, 0.3, 0.5) }); line(ix, iy - 75, ix, iy + 75, { c: C.INK, w: 4, p: seg(st, 0.4, 0.6) });
@@ -624,24 +644,24 @@
       const tx = wide ? 440 : cx, ty = wide ? 580 : 420, R = wide ? 230 : 170;
       const tp = seg(lt, 0, 0.9);
       C.hatch(ctx => ctx.ellipse(tx, ty, R, R * 0.95, 0, 0, 7), tx - R, ty - R, 2 * R, 2 * R, { p: tp, c: 'rgba(150,100,50,0.45)', gap: 11, ang: 0.6 });
-      ellipse(tx, ty, R, R * 0.95, { c: '#7a4a1e', w: 6, p: tp });
+      ellipse(tx, ty, R, R * 0.95, { c: C.BRN2, w: 6, p: tp });
       const s = R * 0.55;
       C.ctx.save(); C.ctx.translate(tx, ty); C.ctx.rotate(0.785);
-      rect(-s, -s, 2 * s, 2 * s, { c: '#5a3210', w: 5, p: seg(lt, 0.3, 0.9) });
-      line(-s, -s, s, s, { c: '#5a3210', w: 5, p: seg(lt, 0.6, 1.0) });
-      line(-s, s, s, -s, { c: '#5a3210', w: 5, p: seg(lt, 0.7, 1.1) });
+      rect(-s, -s, 2 * s, 2 * s, { c: C.BRN2, w: 5, p: seg(lt, 0.3, 0.9) });
+      line(-s, -s, s, s, { c: C.BRN2, w: 5, p: seg(lt, 0.6, 1.0) });
+      line(-s, s, s, -s, { c: C.BRN2, w: 5, p: seg(lt, 0.7, 1.1) });
       for (let i = 0; i < 6; i++) { // çivi yazısı işaretleri
         const u = -s * 0.8 + i * s * 0.28;
         C.alpha(seg(lt, 0.9 + i * 0.05, 1.1 + i * 0.05), () => {
-          pen([[u, -10], [u + 12, -4], [u, 2]], { c: '#5a3210', w: 4, j: 0.4 });
-          line(u + 6, -2, u + 6, 16, { c: '#5a3210', w: 3, j: 0.4 });
+          pen([[u, -10], [u + 12, -4], [u, 2]], { c: C.BRN2, w: 4, j: 0.4 });
+          line(u + 6, -2, u + 6, 16, { c: C.BRN2, w: 3, j: 0.4 });
         });
       }
       C.ctx.restore();
       const cx2 = wide ? 1280 : cx;
       const mw = wide ? 1000 : W - 80;
       let y = wide ? 260 : 690;
-      txt('YBC 7289 · Babil tableti', cx2, y, { s: 60, b: true, c: '#7a4a1e', p: seg(lt, 0.8, 1.3), maxW: mw });
+      txt('YBC 7289 · Babil tableti', cx2, y, { s: 60, b: true, c: C.BRN2, p: seg(lt, 0.8, 1.3), maxW: mw });
       txt('yaklaşık 3800 yıllık', cx2, y + (wide ? 80 : 70), { s: 50, c: C.GRY, p: seg(lt, 1.1, 1.5), maxW: mw });
       const ly1 = wide ? 520 : 870, ly2 = wide ? 660 : 960;
       const lab1 = 'Babil:', lab2 = 'Bugün:';
@@ -653,7 +673,7 @@
       const common = C.measure('1,41421', 76, true);
       hl(vx - 10, ly1 - 45, common + 20, 90, C.HL.yesil, seg(lt, 2.8, 3.1));
       hl(vx - 10, ly2 - 45, common + 20, 90, C.HL.yesil, seg(lt, 2.8, 3.1));
-      txt(v1, vx, ly1, { s: 76, b: true, a: 'left', c: '#7a4a1e', p: seg(lt, 1.6, 2.2) });
+      txt(v1, vx, ly1, { s: 76, b: true, a: 'left', c: C.BRN2, p: seg(lt, 1.6, 2.2) });
       txt(v2, vx, ly2, { s: 76, b: true, a: 'left', c: C.INK, p: seg(lt, 2.2, 2.8) });
       txt('\\r{2} değeri: 5 ondalık basamak doğru!', cx2, wide ? 830 : 1040, { s: 56, b: true, c: C.GRN, p: seg(lt, 2.9, 3.4), maxW: mw });
     }, 0.3);
@@ -712,8 +732,8 @@
     blok(t, 19.2, Infinity, lt => {
       const nw = wide ? 1240 : W - 90, nh = wide ? 250 : 290;
       C.not(cx - nw / 2, 190, nw, nh, '#d8f0ff', 0.015, seg(lt, 0, 0.5), (x, y) => {
-        txt('İDDİA', x + nw / 2, y + 55, { s: 48, b: true, c: C.GRY });
-        para('İki irrasyonel sayının çarpımı irrasyoneldir.', x + nw / 2, y + nh / 2 + 30, { s: 64, b: true, c: C.BLK, p: seg(lt, 0.2, 1.0), maxW: nw - 60 });
+        txt('İDDİA', x + nw / 2, y + 55, { s: 48, b: true, c: '#5f6168' });
+        para('İki irrasyonel sayının çarpımı irrasyoneldir.', x + nw / 2, y + nh / 2 + 30, { s: 64, b: true, c: '#24242c', p: seg(lt, 0.2, 1.0), maxW: nw - 60 });
       });
       const fy = wide ? 640 : 680;
       txt('\\r{2} · \\r{2} = 2', cx, fy, { s: 110, b: true, c: C.INK, p: seg(lt, 1.2, 1.9) });
@@ -722,6 +742,7 @@
       hl(cx - w2 / 2 - 16, fy + 95, w2 + 32, 90, C.HL.yesil, seg(lt, 2.5, 2.8));
       txt('ama 2 rasyonel!', cx, fy + 140, { s: 64, b: true, c: C.GRN, p: seg(lt, 2.2, 2.7) });
       C.damga('ÇÜRÜTÜLDÜ', cx + (wide ? 420 : 250), wide ? 470 : 505, seg(lt, 3.0, 3.3), { s: 64 });
+      C.konfeti(cx + (wide ? 420 : 250), wide ? 470 : 505, lt - 3.05, { n: 36 });
       txt('bir aksine örnek yeter', cx, wide ? 950 : 1000, { s: 52, c: C.RED, p: seg(lt, 3.4, 3.9), b: true });
     });
   }
@@ -752,8 +773,8 @@
       const pulse = lt > 5.6 ? 0.5 + 0.5 * Math.sin((lt - 5.6) * 10) : 1;
       const parts = [
         [x0, y0, a, a, C.HL.mavi, 'a²', 2.4, C.INK],
-        [x0 + a, y0, b, a, C.HL.sari, 'ab', 3.0, '#8a6a00'],
-        [x0, y0 + a, a, b, C.HL.sari, 'ab', 3.6, '#8a6a00'],
+        [x0 + a, y0, b, a, C.HL.sari, 'ab', 3.0, C.GOLD],
+        [x0, y0 + a, a, b, C.HL.sari, 'ab', 3.6, C.GOLD],
         [x0 + a, y0 + a, b, b, C.HL.pembe, 'b²', 4.2, C.RED],
       ];
       parts.forEach(([x, y, w, h, col, lab, at, tc], i) => {
@@ -768,7 +789,7 @@
       const fw = Math.min(wide ? 920 : W - 60, C.measure(f, 84, true));
       hl(fx - fw / 2 - 20, fy - 55, fw + 40, 110, C.HL.sari, seg(lt, 5.4, 5.8));
       txt(f, fx, fy, { s: 84, b: true, c: C.BLK, p: seg(lt, 4.8, 5.4), maxW: wide ? 920 : W - 60 });
-      txt('iki tane ab var → 2ab', fx, fy + 110, { s: 52, c: '#8a6a00', p: seg(lt, 5.8, 6.3), b: true });
+      txt('iki tane ab var → 2ab', fx, fy + 110, { s: 52, c: C.GOLD, p: seg(lt, 5.8, 6.3), b: true });
     }, 0.3);
 
     // --- B: Deniz Hanım'ın bahçesi ---
@@ -779,14 +800,14 @@
       const gp = seg(lt, 0, 0.8);
       const R1 = [x0, y0, a, a - b]; // üst şerit
       const hatchR = (r, p, col) => C.hatch(ctx => ctx.rect(r[0], r[1], r[2], r[3]), r[0], r[1], r[2], r[3], { p, c: col, gap: 16 });
-      hatchR(R1, gp, 'rgba(31,138,76,0.45)');
+      hatchR(R1, gp, C.HATCHG);
       rect(R1[0], R1[1], R1[2], R1[3], { c: C.GRN, w: 5, p: gp });
       // köşe karesi b×b
       const cutP = seg(lt, 1.2, 1.8);
-      if (lt < 1.2) { hatchR([x0, y0 + a - b, a, b], gp, 'rgba(31,138,76,0.45)'); rect(x0, y0, a, a, { c: C.GRN, w: 5, p: gp }); }
+      if (lt < 1.2) { hatchR([x0, y0 + a - b, a, b], gp, C.HATCHG); rect(x0, y0, a, a, { c: C.GRN, w: 5, p: gp }); }
       if (lt >= 1.2) {
         rect(x0 + a - b, y0 + a - b, b, b, { c: C.RED, w: 4, dash: [10, 8] });
-        C.alpha(1 - cutP, () => hatchR([x0 + a - b, y0 + a - b, b, b], 1, 'rgba(31,138,76,0.45)'));
+        C.alpha(1 - cutP, () => hatchR([x0 + a - b, y0 + a - b, b, b], 1, C.HATCHG));
         txt('b', x0 + a - b / 2, y0 + a + 42, { s: 52, b: true, c: C.RED, p: cutP });
         txt('b²', x0 + a - b / 2, y0 + a - b / 2, { s: 56, b: true, c: C.RED, p: cutP });
       }
@@ -797,7 +818,7 @@
       const cc = [lerp(c1[0], c2[0], mp), lerp(c1[1], c2[1], mp) - Math.sin(mp * Math.PI) * 80];
       C.ctx.save(); C.ctx.translate(cc[0], cc[1]); C.ctx.rotate(-Math.PI / 2 * mp);
       const w2 = a - b, h2 = b;
-      if (lt >= 1.2) hatchR([-w2 / 2, -h2 / 2, w2, h2], 1, 'rgba(31,138,76,0.45)');
+      if (lt >= 1.2) hatchR([-w2 / 2, -h2 / 2, w2, h2], 1, C.HATCHG);
       rect(-w2 / 2, -h2 / 2, w2, h2, { c: lt >= 1.2 ? C.PUR : C.GRN, w: 5, p: lt >= 1.2 ? 1 : gp });
       C.ctx.restore();
       // etiketler
@@ -853,57 +874,135 @@
   }
 
   // =====================================================================
+  // Ortak simgeler (ana fikir kartları ve final)
+  const SIMGE_RENK = [C.HL.sari, C.HL.pembe, C.HL.mavi, C.HL.yesil];
+  function simge(i, R) {
+    C.fillSoft(ctx => ctx.arc(0, 0, R, 0, 7), SIMGE_RENK[i]);
+    circle(0, 0, R, { c: C.BLK, w: 5 });
+    if (i === 0) txt('10^{n}', 0, 0, { s: Math.max(80, R * 0.8), b: true, c: C.INK });
+    if (i === 1) {
+      line(-R * 0.75, 18, R * 0.75, 18, { c: C.BLK, w: 4 });
+      hl(-R * 0.45, 2, R * 0.9, 32, C.HL.mor);
+      C.nokta(-R * 0.45, 18, true, 1, C.PUR); C.nokta(R * 0.45, 18, false, 1, C.PUR);
+      txt('[ )', 0, -R * 0.4, { s: 52, b: true, c: C.PUR });
+    }
+    if (i === 2) {
+      ellipse(0, 10, R * 0.8, R * 0.62, { c: C.GRN, w: 4 });
+      ellipse(-8, 18, R * 0.55, R * 0.42, { c: C.INK, w: 4 });
+      ellipse(-14, 26, R * 0.3, R * 0.22, { c: C.RED, w: 4 });
+    }
+    if (i === 3) {
+      const s = R * 1.1, a = s * 0.62;
+      rect(-s / 2, -s / 2, s, s, { c: C.BLK, w: 4 });
+      line(-s / 2 + a, -s / 2, -s / 2 + a, s / 2, { c: C.BLK, w: 3 }); line(-s / 2, -s / 2 + a, s / 2, -s / 2 + a, { c: C.BLK, w: 3 });
+      hl(-s / 2 + 4, -s / 2 + 4, a - 8, a - 8, C.HL.mavi);
+      hl(-s / 2 + a + 4, -s / 2 + a + 4, s - a - 8, s - a - 8, C.HL.pembe);
+    }
+  }
+
+  // =====================================================================
+  // ANA FİKİR kartları: her öğrenme çıktısının akılda kalması gereken 3 maddesi
+  // Her madde: [düz metin, formül satırı, formül satırı...] — formüller bölünmesin diye ayrı satırda
+  const OZETLER = {
+    ozet1: { i: 0, kod: 'MAT.9.1.1', m: [
+      ['Çok büyük ve çok küçük sayılar bilimsel gösterimle kısaca yazılır:', 'a · 10^{n}   (1 ≤ a < 10)'],
+      ['Kesirli üs bir köktür:', '8^{1/3} = \\r3{8} = 2'],
+      ['Köklü sayının yaklaşık değerini ihtiyaca göre seç; kaba yuvarlama pahalıya patlar.']] },
+    ozet2: { i: 1, kod: 'MAT.9.1.2', m: [
+      ['Aralık, sayı doğrusunun bir parçasıdır:', '[a, b] uçlar dahil,  (a, b) uçlar hariç'],
+      ['∪ en az birinde, ∩ ikisinde birden, A\u00a0\\\u00a0B A\'da olup B\'de olmayan, A\' A\'da olmayan.'],
+      ['Mutlak değerle aralık:', '|x − m| < r  ⇔  m − r < x < m + r']] },
+    ozet3: { i: 2, kod: 'MAT.9.1.3', m: [
+      ['Her yeni küme bir ihtiyaçtan doğdu:', 'ℕ ⊆ ℤ ⊆ ℚ ⊆ ℝ,   ℝ = ℚ ∪ ℚ\''],
+      ['İki rasyonel sayının arasında her zaman bir rasyonel sayı daha vardır: ortalamaları.'],
+      ['"Her zaman" diyen bir iddiayı çürütmek için tek bir aksine örnek yeter.']] },
+    ozet4: { i: 3, kod: 'MAT.9.1.4', m: [
+      ['Özdeşlikleri alan modeli gösterir:', '(a + b)^{2} = a^{2} + 2ab + b^{2}', 'a^{2} − b^{2} = (a − b)(a + b)'],
+      ['Çarpım sıfırsa çarpanlardan en az biri sıfırdır:', 'a · b = 0  ⇔  a = 0 ∨ b = 0'],
+      ['"Her" tüm elemanlar, "bazı" en az bir eleman için: tek kelime anlamı değiştirir.']] },
+  };
+  function ozetSahne(key) {
+    return function (t, L) {
+      const { W, H, cx, wide } = L;
+      const o = OZETLER[key];
+      const kx = wide ? 130 : 36, kw = W - 2 * kx, ky = 60, kh = H - 110;
+      // arkadaki büyük dev simge
+      C.alpha(0.18 * seg(t, 0, 0.6), () => { C.ctx.save(); C.ctx.translate(W - (wide ? 170 : 120), H - 150); C.ctx.rotate(-0.2 + t * 0.03); simge(o.i, wide ? 260 : 200); C.ctx.restore(); });
+      C.not(kx, ky, kw, kh, '#fffdf6', -0.012, seg(t, 0, 0.45), (x, y) => {
+        // başlık şeridi
+        txt(o.kod, x + 50, y + 70, { s: 50, b: true, a: 'left', c: C.GRY });
+        const tw = C.measure('ANA FİKİR', 84, true);
+        const tx = x + kw / 2;
+        hl(tx - tw / 2 - 20, y + 110 - 50, tw + 40, 100, SIMGE_RENK[o.i], seg(t, 0.4, 0.8));
+        txt('ANA FİKİR', tx, y + 110, { s: 84, b: true, c: C.RED, p: seg(t, 0.25, 0.7) });
+        C.ctx.save(); C.ctx.translate(x + kw - (wide ? 110 : 80), y + 95); C.pop(0, 0, seg(t, 0.5, 0.9), () => simge(o.i, wide ? 62 : 52)); C.ctx.restore();
+        // maddeler
+        const size = wide ? 62 : 50, fs = wide ? 66 : 56;
+        let yy = y + (wide ? 235 : 225);
+        const tx0 = x + (wide ? 150 : 110), maxW = kw - (wide ? 210 : 140);
+        o.m.forEach(([m, ...formuller], j) => {
+          const a0 = 0.9 + j * 1.8;
+          const lines = C.wrap(m, size, false, maxW);
+          const n = lines.length + formuller.length;
+          const p = seg(t, a0, a0 + 1.3) * n;
+          C.pop(x + (wide ? 85 : 62), yy + size * 0.1, seg(t, a0 - 0.1, a0 + 0.2), () => {
+            C.fillSoft(ctx => ctx.arc(0, 0, 34, 0, 7), SIMGE_RENK[o.i]);
+            circle(0, 0, 34, { c: C.BLK, w: 4 });
+            txt(String(j + 1), 0, 0, { s: 52, b: true, c: C.BLK });
+          });
+          const lh = size * 1.3;
+          lines.forEach((ln, k) => { txt(ln, tx0, yy, { s: size, a: 'left', c: C.BLK, p: clamp(p - k) }); yy += lh; });
+          C.supMin = 48;
+          formuller.forEach((f, k) => {
+            yy += fs * 0.12;
+            txt(f, tx0 + (wide ? 30 : 10), yy, { s: fs, b: true, a: 'left', c: C.INK, p: clamp(p - lines.length - k), maxW: maxW - 40 });
+            yy += fs * 1.25;
+          });
+          C.supMin = 0;
+          yy += wide ? 40 : 26;
+        });
+      });
+    };
+  }
+
+  // =====================================================================
   // 5) FİNAL
   function final(t, L) {
     const { W, H, cx, wide } = L;
-    const pos = wide
-      ? [[W * 0.2, 330], [W * 0.4, 330], [W * 0.6, 330], [W * 0.8, 330]]
-      : [[cx - 240, 230], [cx + 240, 230], [cx - 240, 500], [cx + 240, 500]];
-    const R = wide ? 125 : 100;
     const kod = ['MAT.9.1.1', 'MAT.9.1.2', 'MAT.9.1.3', 'MAT.9.1.4'];
-    const cols = [C.HL.sari, C.HL.pembe, C.HL.mavi, C.HL.yesil];
-    pos.forEach(([x, y], i) => {
-      const p = seg(t, i * B, i * B + 0.5);
-      C.pop(x, y, p, () => {
-        C.fillSoft(ctx => ctx.arc(0, 0, R, 0, 7), cols[i]);
-        circle(0, 0, R, { c: C.BLK, w: 5 });
-        if (i === 0) txt('10^{n}', 0, 0, { s: 96, b: true, c: C.INK });
-        if (i === 1) {
-          line(-R * 0.75, 18, R * 0.75, 18, { c: C.BLK, w: 4 });
-          hl(-R * 0.45, 2, R * 0.9, 32, C.HL.mor);
-          C.nokta(-R * 0.45, 18, true, 1, C.PUR); C.nokta(R * 0.45, 18, false, 1, C.PUR);
-          txt('[ )', 0, -40, { s: 56, b: true, c: C.PUR });
-        }
-        if (i === 2) {
-          ellipse(0, 10, R * 0.8, R * 0.62, { c: '#1f8a4c', w: 4 });
-          ellipse(-8, 18, R * 0.55, R * 0.42, { c: C.INK, w: 4 });
-          ellipse(-14, 26, R * 0.3, R * 0.22, { c: C.RED, w: 4 });
-          txt('ℝ', R * 0.52, -R * 0.45, { s: 48, b: true, c: '#1f8a4c' });
-        }
-        if (i === 3) {
-          const s = R * 1.1, a = s * 0.62;
-          rect(-s / 2, -s / 2, s, s, { c: C.BLK, w: 4 });
-          line(-s / 2 + a, -s / 2, -s / 2 + a, s / 2, { c: C.BLK, w: 3 }); line(-s / 2, -s / 2 + a, s / 2, -s / 2 + a, { c: C.BLK, w: 3 });
-          hl(-s / 2 + 4, -s / 2 + 4, a - 8, a - 8, C.HL.mavi);
-          hl(-s / 2 + a + 4, -s / 2 + a + 4, s - a - 8, s - a - 8, C.HL.pembe);
-        }
+    const alt = ['büyük ve küçük sayıyı kısa yaz', 'sayı doğrusunun parçaları', 'iç içe sayı kümeleri', 'alan modeli ve önermeler'];
+    if (wide) {
+      const R = 110;
+      [0, 1, 2, 3].forEach(i => {
+        const x = W * (0.2 + 0.2 * i), y = 250;
+        C.pop(x, y, seg(t, i * B, i * B + 0.5), () => simge(i, R));
+        txt(kod[i], x, y + R + 42, { s: 48, b: true, c: C.GRY, p: seg(t, i * B + 0.3, i * B + 0.7) });
+        C.wrap(alt[i], 48, true, 360).forEach((ln, k) => txt(ln, x, y + R + 105 + k * 58, { s: 48, b: true, c: C.INK, p: seg(t, 2.4 + i * 0.6 + k * 0.3, 3.0 + i * 0.6 + k * 0.3) }));
       });
-      txt(kod[i], x, y + R + 45, { s: 48, b: true, c: C.GRY, p: seg(t, i * B + 0.3, i * B + 0.7) });
-    });
-    // son cümle: anlamlı yerden iki satıra bölünür
+    } else {
+      [0, 1, 2, 3].forEach(i => {
+        const x = 130, y = 140 + i * 145;
+        C.pop(x, y, seg(t, i * B, i * B + 0.5), () => simge(i, 62));
+        txt(kod[i], x + 100, y - 30, { s: 48, b: true, a: 'left', c: C.GRY, p: seg(t, i * B + 0.3, i * B + 0.7) });
+        txt(alt[i], x + 100, y + 28, { s: 52, b: true, a: 'left', c: C.INK, p: seg(t, 2.4 + i * 0.6, 3.0 + i * 0.6), maxW: W - x - 140 });
+      });
+    }
     const lines = ['Her sayının bir hikâyesi var —', 'bu yıl onları okuyacağız.'];
-    const sy = wide ? 720 : 820;
+    const sy = wide ? 745 : 850;
     const lh = 76 * 1.3;
     lines.forEach((ln, i) => {
       const y = sy - lh / 2 + i * lh;
       const w = Math.min(W - 100, C.measure(ln, 76, true));
-      hl(cx - w / 2 - 16, y - 45, w + 32, 90, C.HL.sari, seg(t, 5.0 + i * 0.3, 5.5 + i * 0.3));
-      txt(ln, cx, y, { s: 76, b: true, c: C.INK, p: seg(t, 2.4 + i * 1.2, 3.6 + i * 1.2), maxW: W - 100 });
+      hl(cx - w / 2 - 16, y - 45, w + 32, 90, C.HL.sari, seg(t, 7.8 + i * 0.3, 8.3 + i * 0.3));
+      txt(ln, cx, y, { s: 76, b: true, c: C.RED, p: seg(t, 5.4 + i * 1.2, 6.6 + i * 1.2) });
     });
-    const by = wide ? 900 : 1020;
-    txt('9. Sınıf Matematik · 1. Tema: Sayılar', cx, by, { s: 54, c: C.GRY, p: seg(t, 5.4, 6.4), maxW: W - 100 });
-    if (wide) line(cx - 420, by + 45, cx + 420, by + 49, { c: C.RED, w: 4, p: seg(t, 6.2, 6.8) });
+    C.konfeti(cx - W * 0.3, sy + 40, t - 8.4, { n: 40, yay: 1.6 });
+    C.konfeti(cx + W * 0.3, sy + 40, t - 8.6, { n: 40, yay: 1.6 });
+    const by = wide ? 960 : 1040;
+    txt('9. Sınıf Matematik · 1. Tema: Sayılar', cx, by, { s: 54, c: C.GRY, p: seg(t, 9.0, 9.9), maxW: W - 100 });
+    if (wide) line(cx - 420, by + 45, cx + 420, by + 49, { c: C.RED, w: 4, p: seg(t, 9.8, 10.4) });
   }
 
-  root.SAHNELER = { kanca, ussu, aralik, kumeler, cebir, final };
+  root.SAHNELER = { kanca, ussu, aralik, kumeler, cebir, final,
+    ozet1: ozetSahne('ozet1'), ozet2: ozetSahne('ozet2'), ozet3: ozetSahne('ozet3'), ozet4: ozetSahne('ozet4') };
 })(this);
