@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<title>5-A Haftalık Ders Programı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root{
+  --ink:#1c2433; --muted:#5b6475; --line:#d5dae3; --navy:#1f3a5f; --navy2:#2d4f7c;
+  --brk:#eef1f5; --brk-ink:#6a7385;
+}
+html,body{ background:#fff; }
+body{ font-family:'Inter',sans-serif; color:var(--ink); width:210mm; height:297mm; padding:11mm 10mm 9mm; display:flex; flex-direction:column; }
+header{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2.5px solid var(--navy); padding-bottom:3mm; margin-bottom:3.5mm; }
+header .yr{ font-size:8.5pt; font-weight:600; letter-spacing:.14em; color:var(--navy2); text-transform:uppercase; }
+header h1{ font-size:17pt; font-weight:800; letter-spacing:-.01em; color:var(--navy); line-height:1.15; margin-top:1mm; }
+header h1 i{ font-weight:500; color:var(--muted); font-size:13pt; }
+.cls{ text-align:right; }
+.cls .badge{ display:inline-block; background:var(--navy); color:#fff; font-weight:800; font-size:20pt; padding:1mm 4mm; border-radius:2mm; line-height:1.1; }
+.cls .badge small{ display:block; font-size:6.5pt; font-weight:500; letter-spacing:.12em; opacity:.8; }
+.teacher{ font-size:8pt; color:var(--muted); margin-top:1.5mm; }
+.teacher b{ color:var(--ink); font-weight:700; }
+
+table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; }
+.prog{ border:1px solid var(--line); border-radius:2mm; overflow:hidden; }
+.prog col.tc{ width:17mm; } .prog col.fc{ width:17mm; }
+.prog thead th{ background:var(--navy); color:#fff; padding:1.6mm 1mm; font-size:8.5pt; font-weight:700; letter-spacing:.04em; border-left:1px solid var(--navy2); }
+.prog thead th i{ display:block; font-weight:400; font-size:6.8pt; opacity:.8; letter-spacing:.02em; }
+.prog thead th:first-child{ border-left:0; }
+.prog thead th.fri-h{ background:#16304f; }
+td,th{ border-left:1px solid var(--line); border-top:1px solid var(--line); text-align:center; vertical-align:middle; }
+tr > :first-child{ border-left:0; }
+thead tr th{ border-top:0; }
+
+th.t{ background:#f7f8fa; padding:1mm .5mm; }
+th.t span{ display:block; line-height:1.25; }
+th.t .n{ font-size:7.6pt; font-weight:800; color:var(--navy); }
+th.t .ns{ font-size:6pt; font-style:italic; color:var(--muted); font-weight:400; }
+th.t .tm{ font-size:7pt; font-weight:600; font-variant-numeric:tabular-nums; margin-top:.4mm; color:var(--ink); }
+th.fri{ border-left:2px solid var(--navy) !important; }
+
+td.s{ height:15.6mm; padding:1mm 1.2mm; }
+td.s b{ display:block; font-size:7.4pt; font-weight:700; line-height:1.2; letter-spacing:.01em; }
+td.s i{ display:block; font-size:6.1pt; color:var(--muted); line-height:1.2; margin-top:.5mm; }
+
+tr.br th, tr.br td{ background:var(--brk); height:5.6mm; font-size:6.6pt; color:var(--brk-ink); font-weight:600; letter-spacing:.06em; }
+tr.br i{ font-weight:400; letter-spacing:.02em; }
+th.bt{ font-variant-numeric:tabular-nums; font-size:6.8pt !important; color:var(--muted) !important; }
+td.exit, th.exit{ background:#e3e8ef !important; }
+td.exit b{ display:block; font-size:8pt; color:var(--navy); letter-spacing:.06em; }
+td.exit i{ display:block; font-size:6.4pt; color:var(--muted); font-weight:400; }
+td.wk{ background:var(--navy); color:#fff; }
+td.wk b{ display:block; font-size:9pt; letter-spacing:.06em; }
+td.wk i{ display:block; font-size:6.6pt; opacity:.8; margin-top:.5mm; }
+
+/* subject colours */
+.de{ background:#e6effb; } .de b{ color:#1d4f91; }
+.tr{ background:#fbe9ea; } .tr b{ color:#a3282f; }
+.en{ background:#efeafb; } .en b{ color:#5a3aa0; }
+.ma{ background:#fdf2dc; } .ma b{ color:#9a5b00; }
+.fe{ background:#e5f4ea; } .fe b{ color:#22703f; }
+.so{ background:#f6ece2; } .so b{ color:#86501f; }
+.di{ background:#e2f3f2; } .di b{ color:#1b6f6a; }
+.ar{ background:#fbe8f3; } .ar b{ color:#9c2f6c; }
+.sp{ background:#e9f5df; } .sp b{ color:#4b7a1c; }
+.ku{ background:#f0f1f4; } .ku b{ color:#465063; }
+.bi{ background:#e2f1f8; } .bi b{ color:#17648a; }
+
+h2{ display:flex; align-items:center; gap:2.5mm; font-size:10pt; font-weight:800; color:var(--navy); margin:4.5mm 0 2mm; letter-spacing:.02em; }
+h2 i{ font-weight:500; color:var(--muted); font-size:8.5pt; }
+h2::after{ content:""; flex:1; height:1px; background:var(--line); }
+.hw{ border:1px solid var(--line); border-radius:2mm; overflow:hidden; }
+.hw thead th{ background:var(--navy); color:#fff; font-size:7.8pt; font-weight:700; padding:1.3mm; letter-spacing:.04em; border-left:1px solid var(--navy2); }
+.hw thead th i{ font-weight:400; opacity:.8; font-size:6.6pt; }
+.hw thead th:first-child{ border-left:0; }
+.hw td.s{ height:11.5mm; }
+
+.foot{ margin-top:auto; display:flex; justify-content:space-between; align-items:flex-end; }
+.note{ font-size:7.4pt; color:var(--muted); }
+.note b{ color:var(--ink); }
+.sign{ text-align:center; min-width:52mm; }
+.sign .line{ border-top:1px solid var(--ink); margin-bottom:1.2mm; }
+.sign b{ display:block; font-size:8.5pt; }
+.sign span{ font-size:7pt; color:var(--muted); }
+</style></head>
+<body>
+<header>
+  <div>
+    <div class="yr">Schuljahr 2026/2027</div>
+    <h1>Haftalık Ders Programı <i>/ Stundenplan</i></h1>
+    <div class="teacher">Sınıf Öğretmeni – <i>Klassenlehrerin</i>: <b>TUĞBA YILDIZ</b></div>
+  </div>
+  <div class="cls"><div class="badge"><small>SINIF · KLASSE</small>5-A</div></div>
+</header>
+
+<table class="prog">
+<colgroup><col class="tc"><col><col><col><col><col class="fc"><col></colgroup>
+<thead><tr>
+ <th>SAAT<i>Zeit</i></th><th>PAZARTESİ<i>Montag</i></th><th>SALI<i>Dienstag</i></th><th>ÇARŞAMBA<i>Mittwoch</i></th><th>PERŞEMBE<i>Donnerstag</i></th>
+ <th class="fri fri-h">SAAT<i>Zeit</i></th><th class="fri-h">CUMA<i>Freitag</i></th>
+</tr></thead>
+<tbody>
+<tr class="ls"><th class="t"><span class="n">1. DERS</span><span class="ns">1. Stunde</span><span class="tm">08.15–08.55</span></th><td class="s de"><b>ALMANCA</b><i>Deutsch</i></td><td class="s de"><b>ALMANCA</b><i>Deutsch</i></td><td class="s tr"><b>TÜRKÇE</b><i>Türkisch</i></td><td class="s tr"><b>TÜRKÇE</b><i>Türkisch</i></td><th class="t fri"><span class="n">1. DERS</span><span class="ns">1. Stunde</span><span class="tm">08.15–08.55</span></th><td class="s en"><b>İNGİLİZCE</b><i>Englisch</i></td></tr>
+<tr class="br"><th class="bt">08.55–09.15</th><td colspan="6">KAHVALTI <i>– Frühstück</i></td></tr>
+<tr class="ls"><th class="t"><span class="n">2. DERS</span><span class="ns">2. Stunde</span><span class="tm">09.15–09.55</span></th><td class="s de"><b>ALMANCA</b><i>Deutsch</i></td><td class="s ma"><b>MATEMATİK ETÜT</b><i>Mathe Stunde</i></td><td class="s tr"><b>TÜRKÇE</b><i>Türkisch</i></td><td class="s en"><b>İNGİLİZCE</b><i>Englisch</i></td><th class="t fri"><span class="n">2. DERS</span><span class="ns">2. Stunde</span><span class="tm">09.15–09.55</span></th><td class="s en"><b>İNGİLİZCE</b><i>Englisch</i></td></tr>
+<tr class="br"><th class="bt">09.55–10.05</th><td colspan="6">DİNLENME <i>– Pause</i></td></tr>
+<tr class="ls"><th class="t"><span class="n">3–4. DERS</span><span class="ns">3–4. Stunde</span><span class="tm">10.05–11.15</span></th><td class="s tr"><b>ELEŞTİREL OKUMA VE YAZMA</b><i>Kritisches Lesen und Schreiben</i></td><td class="s en"><b>İNGİLİZCE</b><i>Englisch</i></td><td class="s fe"><b>FEN BİLİMLERİ</b><i>Naturwissenschaft</i></td><td class="s ma"><b>MATEMATİK</b><i>Mathematik</i></td><th class="t fri"><span class="n">3–4. DERS</span><span class="ns">3–4. Stunde</span><span class="tm">10.05–11.15</span></th><td class="s de"><b>ALMANCA</b><i>Deutsch</i></td></tr>
+<tr class="br"><th class="bt">11.15–11.35</th><td colspan="6">DİNLENME <i>– Pause</i></td></tr>
+<tr class="ls"><th class="t"><span class="n">5. DERS</span><span class="ns">5. Stunde</span><span class="tm">11.30–12.15</span></th><td class="s so"><b>SOSYAL BİLGİLER</b><i>Sozialkunde</i></td><td class="s de"><b>ALMANCA</b><i>Deutsch</i></td><td class="s ar"><b>MÜZİK</b><i>Musik</i></td><td class="s di"><b>DİN KÜLTÜRÜ VE AHLAK BİLGİSİ</b><i>Religion</i></td><th class="t fri"><span class="n">5. DERS</span><span class="ns">5. Stunde</span><span class="tm">11.35–12.15</span></th><td class="s bi"><b>BİLİŞİM TEKNOLOJİLERİ</b><i>Informatik</i></td></tr>
+<tr class="br"><th class="bt">12.15–12.30</th><td colspan="6">ÖĞLE YEMEĞİ <i>– Mittagessen</i></td></tr>
+<tr class="br"><th class="bt">12.30–12.50</th><td colspan="6">DİNLENME <i>– Pause</i></td></tr>
+<tr class="ls"><th class="t"><span class="n">6. DERS</span><span class="ns">6. Stunde</span><span class="tm">12.50–13.30</span></th><td class="s sp"><b>BEDEN EĞİTİMİ</b><i>Sport</i></td><td class="s tr"><b>TÜRKÇE</b><i>Türkisch</i></td><td class="s ar"><b>GÖRSEL SANATLAR</b><i>Kunst</i></td><td class="s de"><b>ALMANCA</b><i>Deutsch</i></td><th class="t fri"><span class="n">6. DERS</span><span class="ns">6. Stunde</span><span class="tm">12.50–13.30</span></th><td class="s bi"><b>BİLİŞİM TEKNOLOJİLERİ</b><i>Informatik</i></td></tr>
+<tr class="br"><th class="bt">13.30–13.40</th><td colspan="4">DİNLENME <i>– Pause</i></td><th class="bt fri">13.30–13.35</th><td>DİNLENME <i>– Pause</i></td></tr>
+<tr class="ls"><th class="t"><span class="n">7. DERS</span><span class="ns">7. Stunde</span><span class="tm">13.40–14.20</span></th><td class="s ma"><b>MATEMATİK</b><i>Mathematik</i></td><td class="s ma"><b>MATEMATİK</b><i>Mathematik</i></td><td class="s so"><b>SOSYAL BİLGİLER</b><i>Sozialkunde</i></td><td class="s fe"><b>FEN BİLİMLERİ</b><i>Naturwissenschaft</i></td><th class="t fri"><span class="n">7. DERS</span><span class="ns">7. Stunde</span><span class="tm">13.35–14.10</span></th><td class="s de"><b>ALMANCA</b><i>Deutsch-Hauptfach</i></td></tr>
+<tr class="br"><th class="bt">14.20–14.30</th><td colspan="4">DİNLENME <i>– Pause</i></td><th class="bt fri exit" rowspan="3">14.10–14.15</th><td class="exit" rowspan="3"><b>ÇIKIŞ</b><i>Schulschluss</i></td></tr>
+<tr class="ls"><th class="t"><span class="n">8. DERS</span><span class="ns">8. Stunde</span><span class="tm">14.30–15.05</span></th><td class="s ku"><b>KULÜP</b><i>Arbeitsgemeinschaft (AG)</i></td><td class="s fe"><b>FEN BİLİMLERİ</b><i>Naturwissenschaft</i></td><td class="s de"><b>ALMANCA</b><i>Deutsch</i></td><td class="s de"><b>ALMANCA</b><i>Deutsch</i></td></tr>
+<tr class="br"><th class="bt">15.05–15.10</th><td colspan="4">DİNLENME <i>– Pause</i></td></tr>
+<tr class="ls"><th class="t"><span class="n">9. DERS</span><span class="ns">9. Stunde</span><span class="tm">15.10–15.40</span></th><td class="s ku"><b>KULÜP</b><i>Arbeitsgemeinschaft (AG)</i></td><td class="s fe"><b>FEN BİLİMLERİ</b><i>Naturwissenschaft</i></td><td class="s de"><b>ALMANCA</b><i>Deutsch</i></td><td class="s de"><b>ALMANCA</b><i>Deutsch</i></td><td class="wk" colspan="2"><b>İYİ HAFTA SONLARI</b><i>Schönes Wochenende</i></td></tr>
+</tbody></table>
+
+<h2>ÖDEV GÜNLERİ <i>Hausaufgabentage</i></h2>
+<table class="hw">
+<thead><tr><th>PAZARTESİ <i>Montag</i></th><th>SALI <i>Dienstag</i></th><th>ÇARŞAMBA <i>Mittwoch</i></th><th>PERŞEMBE <i>Donnerstag</i></th><th>CUMA <i>Freitag</i></th></tr></thead>
+<tbody><tr><td class="s ma"><b>MATEMATİK</b><i>Mathematik</i></td><td class="s fe"><b>FEN BİLİMLERİ</b><i>Naturwissenschaft</i></td><td class="s tr"><b>TÜRKÇE</b><i>Türkisch</i></td><td class="s ma"><b>MATEMATİK</b><i>Mathematik</i></td><td class="s de"><b>ALMANCA</b><i>Deutsch</i></td></tr><tr><td class="s de"><b>ALMANCA</b><i>Deutsch</i></td><td class="s en"><b>İNGİLİZCE</b><i>Englisch</i></td><td class="s fe"><b>FEN BİLİMLERİ</b><i>Naturwissenschaft</i></td><td class="s en"><b>İNGİLİZCE</b><i>Englisch</i></td><td class="s en"><b>İNGİLİZCE</b><i>Englisch</i></td></tr><tr><td class="s so"><b>SOSYAL BİLGİLER</b><i>Sozialkunde</i></td><td class="s ma"><b>MATEMATİK</b><i>Mathematik</i></td><td class="s de"><b>ALMANCA</b><i>Deutsch</i></td><td class="s di"><b>DİN KÜLTÜRÜ VE AHLAK BİLGİSİ<sup>*</sup></b><i>Religion</i></td><td class="s tr"><b>TÜRKÇE</b><i>Türkisch</i></td></tr></tbody></table>
+
+<div class="foot">
+  <div class="note"><b>*</b> Din Kültürü ve Ahlak Bilgisi dersinden <b>2 haftada bir</b> ödev verilir.</div>
+  <div class="sign"><div class="line"></div><b>S. Elif DURUKAN</b><span>Okul Müdürü – <i>Schulleiterin</i></span></div>
+</div>
+</body></html>
